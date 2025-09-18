@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slot Demo - Gates of Olympus</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#0a0d2c; color:#fff; text-align:center; }
+    header { background:#111; padding:10px; display:flex; justify-content:space-between; align-items:center; }
+    header a { color:#fff; text-decoration:none; margin:0 10px; }
+    .slot { margin:50px auto; max-width:600px; background:#1c1f3c; padding:20px; border-radius:10px; }
+    .reels { display:flex; justify-content:center; gap:10px; font-size:50px; }
+    .controls { margin-top:20px; }
+    button { padding:10px 20px; margin:5px; border:none; border-radius:5px; background:#e0b300; cursor:pointer; font-weight:bold; }
+    .balance { margin-top:20px; font-size:18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html">🏠 Menu</a>
+    <a href="#" id="logoutBtn">🚪 Logout</a>
+  </header>
+
+  <div class="slot">
+    <h2>🎰 Gates of Olympus Demo</h2>
+    <div class="reels" id="reels">❓ ❓ ❓</div>
+    <div class="controls">
+      <button onclick="spin()">SPIN</button>
+      <button onclick="deposit()">+100 Credit</button>
+    </div>
+    <div class="balance">Saldo: <span id="balance">1000</span></div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const symbols = ["💎","🔱","👑","⚡","🍇","💰"];
+    let balance = parseInt(localStorage.getItem("balance") || "1000");
+
+    function checkLogin() {
+      const user = localStorage.getItem("user");
+      if(!user) {
+        alert("Silakan login dulu!");
+        window.location.href = "index.html";
+      }
+    }
+
+    function updateBalance() {
+      document.getElementById("balance").innerText = balance;
+      localStorage.setItem("balance", balance);
+    }
+
+    function spin() {
+      if(balance < 50) { alert("Saldo tidak cukup!"); return; }
+      balance -= 50;
+      const r = [];
+      for(let i=0;i<3;i++) {
+        r.push(symbols[Math.floor(Math.random()*symbols.length)]);
+      }
+      document.getElementById("reels").innerText = r.join(" ");
+      if(r[0]===r[1] && r[1]===r[2]) {
+        const win = 500;
+        balance += win;
+        document.getElementById("result").innerText = "🎉 JACKPOT! +"+win;
+      } else if(r[0]===r[1] || r[1]===r[2] || r[0]===r[2]) {
+        const win = 100;
+        balance += win;
+        document.getElementById("result").innerText = "✨ Menang kecil +"+win;
+      } else {
+        document.getElementById("result").innerText = "💔 Coba lagi...";
+      }
+      updateBalance();
+    }
+
+    function deposit() {
+      balance += 100;
+      updateBalance();
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("user");
+      window.location.href = "index.html";
+    });
+
+    checkLogin();
+    updateBalance();
+  </script>
+</body>
+</html>
