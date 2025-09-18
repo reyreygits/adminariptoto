@@ -5,50 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cek User Terdaftar - ARIPTOTO</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0a0f1c;
-      color: white;
-      text-align: center;
-      padding: 40px;
-    }
-    h1 {
-      color: #FFD700;
-      margin-bottom: 20px;
-    }
-    table {
-      width: 100%;
-      max-width: 800px;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: #1c1c1c;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
-    }
-    table th, table td {
-      padding: 12px 15px;
-      border: 1px solid #333;
-    }
-    table th {
-      background: #111a33;
-      color: #FFD700;
-    }
-    table tr:nth-child(even) {
-      background: #2a2a2a;
-    }
-    .btn-clear {
-      margin-top: 20px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      background: #ff4444;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+    body { margin: 0; font-family: Arial, sans-serif; background: #0a0f1c; color: white; text-align: center; padding: 40px; }
+    h1 { color: #FFD700; margin-bottom: 20px; }
+    table { width: 100%; max-width: 800px; margin: 20px auto; border-collapse: collapse; background: #1c1c1c; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.6); }
+    table th, table td { padding: 12px 15px; border: 1px solid #333; }
+    table th { background: #111a33; color: #FFD700; }
+    table tr:nth-child(even) { background: #2a2a2a; }
+    .btn-clear { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 6px; background: #ff4444; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
     .btn-clear:hover { background: #cc0000; transform: scale(1.05); }
   </style>
 </head>
@@ -71,9 +34,10 @@
   </table>
 
   <button class="btn-clear" onclick="clearUsers()">Hapus Semua User</button>
+  <br><br>
+  <a href="index.html" style="color:#FFD700; text-decoration: underline;">Kembali ke Beranda</a>
 
   <script>
-    // Ambil data dari localStorage
     function loadUsers() {
       let users = JSON.parse(localStorage.getItem("users")) || [];
       let table = document.getElementById("userTable");
@@ -96,7 +60,6 @@
       });
     }
 
-    // Hapus semua user
     function clearUsers() {
       if(confirm("Yakin ingin menghapus semua user?")){
         localStorage.removeItem("users");
@@ -104,7 +67,7 @@
       }
     }
 
-    loadUsers();
+    window.onload = loadUsers;
   </script>
 
 </body>
