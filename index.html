@@ -3,20 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Cek User Terdaftar - ARIPTOTO</title>
+  <title>Admin - Daftar User ARIPTOTO</title>
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #0a0f1c; color: white; text-align: center; padding: 40px; }
-    h1 { color: #FFD700; margin-bottom: 20px; }
-    table { width: 100%; max-width: 800px; margin: 20px auto; border-collapse: collapse; background: #1c1c1c; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.6); }
-    table th, table td { padding: 12px 15px; border: 1px solid #333; }
-    table th { background: #111a33; color: #FFD700; }
-    table tr:nth-child(even) { background: #2a2a2a; }
-    .btn-clear { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 6px; background: #ff4444; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    .btn-clear:hover { background: #cc0000; transform: scale(1.05); }
+    body {
+      background: #0a0f1c;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 {
+      color: #FFD700;
+      margin-bottom: 25px;
+    }
+    table {
+      margin: 0 auto;
+      width: 90%;
+      max-width: 900px;
+      border-collapse: collapse;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #1c1c1c;
+    }
+    th, td {
+      padding: 12px 18px;
+      border: 1px solid #333;
+    }
+    th {
+      background: #111a33;
+      color: #FFD700;
+      text-align: center;
+    }
+    tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+    tr:hover {
+      background: #444444;
+    }
+    button {
+      margin-top: 20px;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #ff4444;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #cc0000;
+      transform: scale(1.05);
+    }
+    a {
+      color: #FFD700;
+      text-decoration: underline;
+      display: inline-block;
+      margin-top: 25px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-
   <h1>📋 Daftar User Terdaftar</h1>
   <table>
     <thead>
@@ -29,48 +79,62 @@
       </tr>
     </thead>
     <tbody id="userTable">
-      <!-- Data user akan dimuat otomatis -->
+      <tr><td colspan="5">Memuat data...</td></tr>
     </tbody>
   </table>
 
-  <button class="btn-clear" onclick="clearUsers()">Hapus Semua User</button>
-  <br><br>
-  <a href="index.html" style="color:#FFD700; text-decoration: underline;">Kembali ke Beranda</a>
+  <button onclick="clearUsers()">Hapus Semua User</button>
+  <br />
+  <a href="index.html">Kembali ke Beranda</a>
 
   <script>
     function loadUsers() {
-      let usersObj = JSON.parse(localStorage.getItem("users")) || {};
-      let table = document.getElementById("userTable");
-      table.innerHTML = "";
+      let users = JSON.parse(localStorage.getItem('users')) || {};
+      let tbody = document.getElementById('userTable');
+      tbody.innerHTML = '';
 
-      let keys = Object.keys(usersObj);
-      if(keys.length === 0){
-        table.innerHTML = `<tr><td colspan="5">Belum ada user terdaftar</td></tr>`;
+      let entries = Object.entries(users);
+      if(entries.length === 0){
+        tbody.innerHTML = `<tr><td colspan="5">Belum ada user terdaftar.</td></tr>`;
         return;
       }
 
-      keys.forEach(user => {
-        let u = usersObj[user];
-        let row = `<tr>
-          <td>${user}</td>
-          <td>${u.rekNum}</td>
-          <td>${u.rekName}</td>
-          <td>${u.phone}</td>
-          <td>${u.bank}</td>
-        </tr>`;
-        table.innerHTML += row;
+      entries.forEach(([userID, data]) => {
+        let row = document.createElement('tr');
+
+        let tdUser = document.createElement('td');
+        tdUser.textContent = userID;
+
+        let tdRekNum = document.createElement('td');
+        tdRekNum.textContent = data.rekNum;
+
+        let tdRekName = document.createElement('td');
+        tdRekName.textContent = data.rekName;
+
+        let tdPhone = document.createElement('td');
+        tdPhone.textContent = data.phone;
+
+        let tdBank = document.createElement('td');
+        tdBank.textContent = data.bank;
+
+        row.appendChild(tdUser);
+        row.appendChild(tdRekNum);
+        row.appendChild(tdRekName);
+        row.appendChild(tdPhone);
+        row.appendChild(tdBank);
+
+        tbody.appendChild(row);
       });
     }
 
     function clearUsers() {
-      if(confirm("Yakin ingin menghapus semua user?")){
-        localStorage.removeItem("users");
+      if(confirm('Yakin ingin menghapus semua user?')){
+        localStorage.removeItem('users');
         loadUsers();
       }
     }
 
     window.onload = loadUsers;
   </script>
-
 </body>
 </html>
