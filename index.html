@@ -1,18 +1,52 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Cek User Terdaftar - ARIPTOTO</title>
   <style>
     body { margin: 0; font-family: Arial, sans-serif; background: #0a0f1c; color: white; text-align: center; padding: 40px; }
     h1 { color: #FFD700; margin-bottom: 20px; }
-    table { width: 100%; max-width: 800px; margin: 20px auto; border-collapse: collapse; background: #1c1c1c; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 20px rgba(0,0,0,0.6); }
-    table th, table td { padding: 12px 15px; border: 1px solid #333; }
-    table th { background: #111a33; color: #FFD700; }
-    table tr:nth-child(even) { background: #2a2a2a; }
-    .btn-clear { margin-top: 20px; padding: 10px 20px; border: none; border-radius: 6px; background: #ff4444; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    .btn-clear:hover { background: #cc0000; transform: scale(1.05); }
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: #1c1c1c;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    }
+    table th, table td {
+      padding: 12px 15px;
+      border: 1px solid #333;
+    }
+    table th {
+      background: #111a33;
+      color: #FFD700;
+    }
+    table tr:nth-child(even) {
+      background: #2a2a2a;
+    }
+    .btn-clear {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      background: #ff4444;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-clear:hover {
+      background: #cc0000;
+      transform: scale(1.05);
+    }
+    a {
+      color: #FFD700;
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -34,27 +68,28 @@
   </table>
 
   <button class="btn-clear" onclick="clearUsers()">Hapus Semua User</button>
-  <br><br>
-  <a href="index.html" style="color:#FFD700; text-decoration: underline;">Kembali ke Beranda</a>
+  <br /><br />
+  <a href="index.html">Kembali ke Beranda</a>
 
   <script>
     function loadUsers() {
-      let users = JSON.parse(localStorage.getItem("users")) || [];
+      let users = JSON.parse(localStorage.getItem("users")) || {};
       let table = document.getElementById("userTable");
       table.innerHTML = "";
 
-      if(users.length === 0){
+      let entries = Object.entries(users);
+      if(entries.length === 0){
         table.innerHTML = `<tr><td colspan="5">Belum ada user terdaftar</td></tr>`;
         return;
       }
 
-      users.forEach(u => {
+      entries.forEach(([userID, data]) => {
         let row = `<tr>
-          <td>${u.user}</td>
-          <td>${u.rekNum}</td>
-          <td>${u.rekName}</td>
-          <td>${u.phoneNum}</td>
-          <td>${u.bankType}</td>
+          <td>${userID}</td>
+          <td>${data.rekNum}</td>
+          <td>${data.rekName}</td>
+          <td>${data.phone}</td>
+          <td>${data.bank}</td>
         </tr>`;
         table.innerHTML += row;
       });
