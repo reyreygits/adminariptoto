@@ -358,36 +358,77 @@
           <p id="phoneData"></p>
         </div>
         <div class="card">
-          <h3>Last Bet/Win Report</h3>
-          <p>No Data</p>
+          <h3>Latest Memo</h3>
+          <p id="memoData">Belum ada memo.</p>
         </div>
         <div class="card">
-          <h3>Last Deposit/Withdraw Status</h3>
-          <p>No Data</p>
+          <h3>Deposit</h3>
+          <p>Untuk deposit, gunakan menu Deposit.</p>
         </div>
       </div>
 
-      <!-- Provider Boxes -->
+      <h2 style="margin-top:40px; color:#ff4444;">Provider</h2>
       <div class="provider-boxes">
-        <div class="provider-card">Pragmatic</div>
-        <div class="provider-card">PG Soft</div>
-        <div class="provider-card">No Limit</div>
-        <div class="provider-card">Habanhero</div>
-      </div>
-
-      <!-- Link daftar user -->
-      <div style="text-align:center; margin-top:30px;">
-        <a href="list.html" style="color:#FFD700; text-decoration: underline;">Lihat Daftar User Terdaftar</a>
+        <div class="provider-card">Togel</div>
+        <div class="provider-card">Tembak Ikan</div>
+        <div class="provider-card">Live Casino</div>
+        <div class="provider-card">Slot</div>
       </div>
     </div>
   </div>
 
   <script>
+    // Fungsi showPage untuk pindah halaman
     function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(p => {
+        if (p.id === pageId) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
     }
 
+    // Fungsi login
+    function login() {
+      let user = document.getElementById('userLogin').value.trim();
+      let pass = document.getElementById('passLogin').value.trim();
+
+      if (!user || !pass) {
+        alert('Masukkan User ID dan Kata Sandi.');
+        return;
+      }
+
+      let users = JSON.parse(localStorage.getItem('users') || '{}');
+
+      if (users[user] && users[user].pass === pass) {
+        alert(`Selamat datang, ${user}!`);
+        // Simpan user aktif ke localStorage
+        localStorage.setItem('activeUser', user);
+        showPage('userarea');
+        displayUserData(user);
+      } else {
+        alert('User ID atau Kata Sandi salah.');
+      }
+    }
+
+    // Fungsi menampilkan data user di halaman userarea
+    function displayUserData(user) {
+      let users = JSON.parse(localStorage.getItem('users') || '{}');
+      let u = users[user];
+
+      if (!u) return;
+
+      document.getElementById('userData').textContent = `Saldo: Rp ${u.balance.toLocaleString('id-ID')}`;
+      document.getElementById('bankData').textContent = `Bank: ${u.bank} (${u.rekNum} a.n ${u.rekName})`;
+      document.getElementById('phoneData').textContent = `No. HP: ${u.phone}`;
+
+      // Kalau ada memo, tampilkan, kalau tidak tampilkan default
+      document.getElementById('memoData').textContent = u.memo || 'Belum ada memo.';
+    }
+
+    // Fungsi daftar/register
     function register() {
       let user = document.getElementById('newUser').value.trim();
       let pass = document.getElementById('newPass').value.trim();
@@ -396,42 +437,55 @@
       let phone = document.getElementById('phoneNum').value.trim();
       let bank = document.getElementById('bankType').value;
 
-      if(user && pass && rekNum && rekName && phone && bank){
-        let users = JSON.parse(localStorage.getItem('users') || '{}');
-        if(users[user]){
-          alert('User ID sudah terdaftar.');
-        } else {
-          users[user] = { pass, rekNum, rekName, phone, bank, balance: 0 };
-          localStorage.setItem('users', JSON.stringify(users));
-          alert('Pendaftaran berhasil! Silahkan login.');
-          showPage('home');
-        }
-      } else {
-        alert('Harap isi semua data.');
+      if (!user || !pass || !rekNum || !rekName || !phone || !bank || bank === "") {
+        alert('Harap isi semua data dengan benar.');
+        return;
       }
-    }
 
-    function login() {
-      let user = document.getElementById('userLogin').value.trim();
-      let pass = document.getElementById('passLogin').value.trim();
+      if (user.length < 4 || pass.length < 4) {
+        alert('User ID dan Password minimal 4 karakter.');
+        return;
+      }
 
       let users = JSON.parse(localStorage.getItem('users') || '{}');
-      if(users[user] && users[user].pass === pass){
-        // Login success
-        showPage('userarea');
-        document.getElementById('userData').innerText = `User: ${user} | Balance: Rp ${users[user].balance}`;
-        document.getElementById('bankData').innerText = `Rekening: ${users[user].rekNum} (${users[user].rekName})`;
-        document.getElementById('phoneData').innerText = `No HP: ${users[user].phone} | Bank: ${users[user].bank}`;
+
+      if (users[user]) {
+        alert('User ID sudah terdaftar.');
       } else {
-        alert('User ID atau kata sandi salah.');
+        try {
+          users[user] = { pass, rekNum, rekName, phone, bank, balance: 0, memo: "" };
+          localStorage.setItem('users', JSON.stringify(users));
+          alert('Pendaftaran berhasil! Silahkan login.');
+
+          // Otomatis isi form login setelah pendaftaran
+          document.getElementById('userLogin').value = user;
+          document.getElementById('passLogin').value = pass;
+
+          showPage('home');
+        } catch (err) {
+          alert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+        }
       }
     }
 
+    // Fungsi logout
     function logout() {
+      localStorage.removeItem('activeUser');
+      alert('Anda berhasil logout.');
       showPage('home');
-      document.getElementById('userLogin').value = '';
-      document.getElementById('passLogin').value = '';
+      // Kosongkan form login
+      document.getElementById('userLogin').value = "";
+      document.getElementById('passLogin').value = "";
     }
+
+    // Jika user sudah login, tetap di halaman userarea saat reload
+    window.onload = () => {
+      let activeUser = localStorage.getItem('activeUser');
+      if (activeUser) {
+        showPage('userarea');
+        displayUserData(activeUser);
+      }
+    };
   </script>
 </body>
 </html>
