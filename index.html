@@ -2,103 +2,257 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ARIPTOTO - Admin Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ARIPTOTO Admin Panel</title>
   <style>
-    /* Gaya CSS untuk halaman admin */
-    body { font-family: Arial, sans-serif; }
-    .container { max-width: 800px; margin: 20px auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
-    button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-    button:hover { background-color: #45a049; }
-    .form-box { background: #f2f2f2; padding: 20px; margin: 20px 0; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0a0f1c;
+      color: white;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    header {
+      background: #111a33;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.5);
+    }
+    header h1 {
+      color: #FFD700;
+      margin: 0;
+      font-size: 28px;
+    }
+    button.logout {
+      background: #ff4444;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button.logout:hover {
+      background: #cc0000;
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      box-shadow: 0 6px 15px rgba(255, 215, 0, 0.4);
+    }
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+    th {
+      background: #222a44;
+      color: #FFD700;
+    }
+    tr:hover {
+      background: #222a44;
+      cursor: pointer;
+    }
+
+    /* Form tambah saldo */
+    form {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input, select {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+      min-width: 150px;
+    }
+    input[type="number"] {
+      max-width: 150px;
+    }
+    button {
+      padding: 10px 18px;
+      font-weight: bold;
+      border-radius: 5px;
+      border: none;
+      background: #00cc66;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background: #00994d;
+      transform: scale(1.05);
+    }
+
+    /* Info pesan */
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #00ff00;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 600px) {
+      form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      input, select, button {
+        width: 100%;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="logo">ARIPTOTO - Admin Panel</div>
-    <div class="menu">
-      <a href="admin.html">Admin</a>
-      <a href="#" onclick="logout()">Logout</a>
-    </div>
+    <h1>ARIPTOTO Admin Panel</h1>
+    <button class="logout" onclick="logout()">Logout</button>
   </header>
 
-  <div class="container">
-    <h2>Daftar Pengguna Terdaftar</h2>
-    <table class="table" id="userTable">
+  <section>
+    <h2>Daftar User</h2>
+    <table id="userTable">
       <thead>
         <tr>
-          <th>User ID</th>
+          <th>ID Pengguna</th>
+          <th>Nama</th>
           <th>Saldo</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody>
-        <!-- Data Pengguna akan muncul disini -->
+        <!-- User data akan dimasukkan di sini -->
       </tbody>
     </table>
+  </section>
 
-    <div class="form-box">
-      <h3>Tambah Saldo</h3>
-      <input type="text" id="userIDToAdd" placeholder="User ID" />
-      <input type="number" id="addSaldo" placeholder="Jumlah Saldo" />
-      <button onclick="addSaldo()">Tambah Saldo</button>
-    </div>
-  </div>
+  <section>
+    <h2>Tambah Saldo User</h2>
+    <form id="addSaldoForm" onsubmit="return tambahSaldo(event)">
+      <select id="selectUser" required>
+        <option value="">-- Pilih User --</option>
+      </select>
+      <input type="number" id="inputSaldo" min="1" placeholder="Jumlah Saldo" required />
+      <button type="submit">Tambah Saldo</button>
+    </form>
+    <div id="message"></div>
+  </section>
 
   <script>
-    // Memuat dan menampilkan data pengguna dari localStorage
-    function loadUsers() {
-      let users = JSON.parse(localStorage.getItem('users') || '{}');
-      const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
-      userTable.innerHTML = '';  // Clear previous rows
-
-      for (let userID in users) {
-        let user = users[userID];
-        let row = userTable.insertRow();
-        row.insertCell(0).innerText = userID;
-        row.insertCell(1).innerText = `Rp ${user.balance}`;
-        row.insertCell(2).innerHTML = `<button onclick="showAddSaldoForm('${userID}')">Tambah Saldo</button>`;
-      }
+    // Ambil user dari localStorage
+    function getUsers() {
+      return JSON.parse(localStorage.getItem('users') || '[]');
     }
-
-    // Fungsi menampilkan form tambah saldo
-    function showAddSaldoForm(userID) {
-      document.getElementById('userIDToAdd').value = userID;
-      document.getElementById('addSaldo').focus();
-    }
-
-    // Fungsi untuk menambah saldo
-    function addSaldo() {
-      let userID = document.getElementById('userIDToAdd').value.trim();
-      let saldoToAdd = parseFloat(document.getElementById('addSaldo').value.trim());
-
-      if (!userID || isNaN(saldoToAdd) || saldoToAdd <= 0) {
-        alert('Harap masukkan ID pengguna yang valid dan jumlah saldo yang benar.');
-        return;
-      }
-
-      let users = JSON.parse(localStorage.getItem('users') || '{}');
-      if (!users[userID]) {
-        alert('Pengguna tidak ditemukan.');
-        return;
-      }
-
-      users[userID].balance += saldoToAdd;
+    // Simpan user ke localStorage
+    function setUsers(users) {
       localStorage.setItem('users', JSON.stringify(users));
-      loadUsers();
-      alert(`Saldo berhasil ditambahkan ke akun ${userID}.`);
     }
 
-    // Fungsi Logout
+    // Render tabel user
+    function renderUserTable() {
+      const users = getUsers();
+      const tbody = document.querySelector('#userTable tbody');
+      tbody.innerHTML = '';
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${u.user}</td>
+          <td>${u.nama}</td>
+          <td>Rp ${u.saldo.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Render option select user
+    function renderSelectUser() {
+      const users = getUsers();
+      const select = document.getElementById('selectUser');
+      select.innerHTML = '<option value="">-- Pilih User --</option>';
+      users.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u.user;
+        option.textContent = `${u.user} (${u.nama})`;
+        select.appendChild(option);
+      });
+    }
+
+    // Tambah saldo user
+    function tambahSaldo(event) {
+      event.preventDefault();
+      const userId = document.getElementById('selectUser').value;
+      const saldoTambah = Number(document.getElementById('inputSaldo').value);
+
+      if(!userId) {
+        alert('Pilih user terlebih dahulu!');
+        return false;
+      }
+      if(saldoTambah <= 0) {
+        alert('Jumlah saldo harus lebih dari 0!');
+        return false;
+      }
+
+      let users = getUsers();
+      const index = users.findIndex(u => u.user === userId);
+      if(index === -1) {
+        alert('User tidak ditemukan!');
+        return false;
+      }
+
+      users[index].saldo += saldoTambah;
+      setUsers(users);
+
+      // Update loggedInUser jika admin panel login pakai user yang sama
+      const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+      if(loggedInUser && loggedInUser.user === userId) {
+        localStorage.setItem('loggedInUser', JSON.stringify(users[index]));
+      }
+
+      renderUserTable();
+      renderSelectUser();
+
+      document.getElementById('message').textContent = `Saldo Rp ${saldoTambah.toLocaleString()} berhasil ditambahkan ke ${userId}`;
+      document.getElementById('inputSaldo').value = '';
+
+      return false;
+    }
+
+    // Logout admin (langsung reload halaman)
     function logout() {
-      window.location.href = 'index.html';  // Redirect ke halaman login
+      // Untuk demo logout, cukup reload halaman
+      alert('Logout berhasil!');
+      location.reload();
     }
 
-    window.onload = loadUsers;  // Memanggil fungsi loadUsers saat halaman di-load
-  </script>
+    // Listen event storage agar otomatis update jika ada perubahan di tab lain
+    window.addEventListener('storage', function(event) {
+      if(event.key === 'users') {
+        renderUserTable();
+        renderSelectUser();
+      }
+    });
 
+    // Inisialisasi halaman
+    window.onload = () => {
+      renderUserTable();
+      renderSelectUser();
+    }
+  </script>
 </body>
 </html>
