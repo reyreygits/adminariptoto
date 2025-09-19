@@ -5,111 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ARIPTOTO - Admin Panel</title>
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #0a0f1c;
-      color: white;
-      overflow-x: hidden;
-    }
-    header {
-      background: #111a33;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    }
-    .logo {
-      font-size: 22px;
-      font-weight: bold;
-      color: #FFD700;
-    }
-    .menu {
-      display: flex;
-      gap: 15px;
-    }
-    .menu a {
-      color: #FFD700;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-    .menu a:hover {
-      color: #ff4444;
-    }
-    .container {
-      padding: 20px;
-      max-width: 900px;
-      margin: 0 auto;
-    }
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
-      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
-    }
-    .table th, .table td {
-      padding: 12px;
-      text-align: center;
-      border: 1px solid #444;
-    }
-    .table th {
-      background: #1e3c72;
-      color: white;
-    }
-    .table td {
-      background: #2a2a2a;
-      color: white;
-    }
-    .table button {
-      background: #00cc66;
-      border: none;
-      padding: 6px 12px;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-    .table button:hover {
-      background: #00994d;
-    }
-    .form-box {
-      background: #1c1c1c;
-      padding: 20px;
-      border-radius: 10px;
-      width: 300px;
-      margin: 20px auto;
-      text-align: center;
-    }
-    .form-box input {
-      width: 100%;
-      padding: 10px;
-      margin: 8px 0;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .form-box button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      background: #00cc66;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .form-box button:hover {
-      background: #00994d;
-    }
+    /* Gaya CSS untuk halaman admin */
+    body { font-family: Arial, sans-serif; }
+    .container { max-width: 800px; margin: 20px auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; text-align: left; border: 1px solid #ddd; }
+    button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    button:hover { background-color: #45a049; }
+    .form-box { background: #f2f2f2; padding: 20px; margin: 20px 0; }
   </style>
 </head>
 <body>
 
-  <!-- Header Admin -->
   <header>
     <div class="logo">ARIPTOTO - Admin Panel</div>
     <div class="menu">
@@ -120,8 +27,6 @@
 
   <div class="container">
     <h2>Daftar Pengguna Terdaftar</h2>
-
-    <!-- Tabel Daftar Pengguna -->
     <table class="table" id="userTable">
       <thead>
         <tr>
@@ -135,7 +40,6 @@
       </tbody>
     </table>
 
-    <!-- Form Tambah Saldo -->
     <div class="form-box">
       <h3>Tambah Saldo</h3>
       <input type="text" id="userIDToAdd" placeholder="User ID" />
@@ -145,13 +49,12 @@
   </div>
 
   <script>
-    // Menyimpan data pengguna pada localStorage
+    // Memuat dan menampilkan data pengguna dari localStorage
     function loadUsers() {
       let users = JSON.parse(localStorage.getItem('users') || '{}');
       const userTable = document.getElementById('userTable').getElementsByTagName('tbody')[0];
       userTable.innerHTML = '';  // Clear previous rows
 
-      // Loop untuk menampilkan data pengguna
       for (let userID in users) {
         let user = users[userID];
         let row = userTable.insertRow();
@@ -183,11 +86,8 @@
         return;
       }
 
-      // Menambah saldo pada pengguna yang dipilih
       users[userID].balance += saldoToAdd;
       localStorage.setItem('users', JSON.stringify(users));
-
-      // Update tampilan tabel
       loadUsers();
       alert(`Saldo berhasil ditambahkan ke akun ${userID}.`);
     }
@@ -197,8 +97,7 @@
       window.location.href = 'index.html';  // Redirect ke halaman login
     }
 
-    // Memanggil fungsi loadUsers saat halaman di-load
-    window.onload = loadUsers;
+    window.onload = loadUsers;  // Memanggil fungsi loadUsers saat halaman di-load
   </script>
 
 </body>
