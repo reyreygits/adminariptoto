@@ -115,6 +115,14 @@
   <button onclick="addSaldo()">Tambah Saldo</button>
 </section>
 
+<section class="form-section">
+  <h2>Hapus Saldo</h2>
+  <label for="hapusSaldoUser">Pilih User ID:</label>
+  <select id="hapusSaldoUser"></select>
+
+  <button onclick="hapusSaldo()" style="background: #ff4444;">Hapus Saldo</button>
+</section>
+
 <script>
   // Ambil users dari localStorage
   function getUsers() {
@@ -134,6 +142,7 @@
 
     for (const user in users) {
       const u = users[user];
+      const saldo = u.balance || 0;
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${user}</td>
@@ -141,20 +150,22 @@
         <td>${u.rekNum}</td>
         <td>${u.rekName}</td>
         <td>${u.phone}</td>
-        <td style="text-align:right">${u.balance.toLocaleString('id-ID')}</td>
+        <td style="text-align:right">${saldo.toLocaleString('id-ID')}</td>
       `;
       tbody.appendChild(tr);
     }
   }
 
-  // Isi dropdown untuk reset password dan tambah saldo
+  // Isi dropdown untuk reset password, tambah saldo, dan hapus saldo
   function fillUserSelects() {
     const users = getUsers();
     const resetUserSelect = document.getElementById('resetUser');
     const saldoUserSelect = document.getElementById('saldoUser');
+    const hapusSaldoUserSelect = document.getElementById('hapusSaldoUser');
 
     resetUserSelect.innerHTML = '';
     saldoUserSelect.innerHTML = '';
+    hapusSaldoUserSelect.innerHTML = '';
 
     for (const user in users) {
       const option1 = document.createElement('option');
@@ -166,6 +177,11 @@
       option2.value = user;
       option2.textContent = user;
       saldoUserSelect.appendChild(option2);
+
+      const option3 = document.createElement('option');
+      option3.value = user;
+      option3.textContent = user;
+      hapusSaldoUserSelect.appendChild(option3);
     }
   }
 
@@ -222,6 +238,31 @@
     alert(`Saldo Rp ${amount.toLocaleString('id-ID')} berhasil ditambahkan ke user "${user}".`);
     document.getElementById('saldoAmount').value = '';
 
+    displayUsers();
+  }
+
+  // Hapus saldo fungsi
+  function hapusSaldo() {
+    const user = document.getElementById('hapusSaldoUser').value;
+
+    if (!user) {
+      alert('Pilih User terlebih dahulu.');
+      return;
+    }
+
+    const confirmed = confirm(`Yakin ingin menghapus saldo user "${user}"?`);
+    if (!confirmed) return;
+
+    const users = getUsers();
+    if (!users[user]) {
+      alert('User tidak ditemukan.');
+      return;
+    }
+
+    users[user].balance = 0;
+    setUsers(users);
+
+    alert(`Saldo user "${user}" berhasil dihapus.`);
     displayUsers();
   }
 
