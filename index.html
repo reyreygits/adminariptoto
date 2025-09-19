@@ -28,6 +28,15 @@
       border: none; border-radius: 5px; cursor: pointer;
     }
     .btn-back:hover { background: #ff2222; }
+    .input-saldo { 
+      padding: 8px; border-radius: 5px; border: none; 
+      background: #333; color: white; width: 100px;
+    }
+    .btn-update-saldo { 
+      background: #00cc66; color: white; padding: 8px 12px; 
+      border: none; border-radius: 5px; cursor: pointer; 
+    }
+    .btn-update-saldo:hover { background: #00994d; }
   </style>
 </head>
 <body>
@@ -47,6 +56,7 @@
         <th>No HP</th>
         <th>Bank</th>
         <th>Saldo</th>
+        <th>Tambah Saldo</th>
       </tr>
     </thead>
     <tbody>
@@ -57,6 +67,7 @@
 </div>
 
 <script>
+  // Fungsi untuk memuat data pengguna dan menambah saldo
   function loadUsers() {
     let users = JSON.parse(localStorage.getItem('users') || '{}');
     let tableBody = document.querySelector('#userTable tbody');
@@ -64,6 +75,8 @@
     
     for (let username in users) {
       let user = users[username];
+      
+      // Membuat baris baru untuk setiap pengguna
       let row = document.createElement('tr');
       row.innerHTML = `
         <td>${username}</td>
@@ -72,15 +85,41 @@
         <td>${user.phone}</td>
         <td>${user.bank}</td>
         <td>Rp ${user.balance.toLocaleString()}</td>
+        <td>
+          <input type="number" class="input-saldo" id="saldo_${username}" placeholder="Tambah Saldo" min="1" />
+          <button class="btn-update-saldo" onclick="addSaldo('${username}')">Tambah</button>
+        </td>
       `;
       tableBody.appendChild(row);
     }
   }
 
+  // Fungsi untuk menambah saldo ke akun pengguna
+  function addSaldo(username) {
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+    let saldoInput = document.getElementById(`saldo_${username}`);
+    let additionalSaldo = parseInt(saldoInput.value);
+
+    if (!additionalSaldo || additionalSaldo <= 0) {
+      alert('Masukkan jumlah saldo yang valid.');
+      return;
+    }
+
+    // Menambahkan saldo ke akun pengguna
+    users[username].balance += additionalSaldo;
+    localStorage.setItem('users', JSON.stringify(users));
+
+    // Update tampilan saldo di tabel
+    loadUsers(); // Memuat ulang data pengguna agar saldo terbaru tampil
+    alert(`Saldo sebesar Rp ${additionalSaldo.toLocaleString()} telah ditambahkan ke akun ${username}.`);
+  }
+
+  // Fungsi untuk kembali ke halaman utama
   function goBack() {
     window.location.href = 'index.html'; // Ganti dengan path halaman utama atau homepage Anda
   }
 
+  // Muat data pengguna saat halaman dibuka
   window.onload = loadUsers;
 </script>
 
