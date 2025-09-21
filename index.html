@@ -45,7 +45,7 @@
     tr:nth-child(even) {
       background: #1c244f;
     }
-    input[type=text], input[type=password], input[type=number] {
+    input[type=text], input[type=password], input[type=number], input[type=date] {
       width: 100%;
       padding: 6px 8px;
       border-radius: 5px;
@@ -72,9 +72,10 @@
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
+      margin-top: 15px;
     }
     .action-group > div {
-      flex: 1 1 150px;
+      flex: 1 1 200px;
     }
     .section-title {
       font-size: 20px;
@@ -104,6 +105,19 @@
     <button onclick="loadUsers()">Muat Data Pemain</button>
   </div>
 
+  <!-- Filter/Search -->
+  <div class="action-group">
+    <div>
+      <input type="text" id="searchUserId" placeholder="Cari berdasarkan User ID" oninput="loadUsers()" />
+    </div>
+    <div>
+      <input type="date" id="searchJoinDate" oninput="loadUsers()" />
+    </div>
+    <div>
+      <button onclick="resetSearch()">Reset Filter</button>
+    </div>
+  </div>
+
   <div class="section-title">Daftar Pemain Terdaftar</div>
   <table id="usersTable">
     <thead>
@@ -115,6 +129,7 @@
         <th>Nama Rekening</th>
         <th>No. HP</th>
         <th>Bank / E-Wallet</th>
+        <th>Tanggal Join</th>
         <th>Aksi</th>
       </tr>
     </thead>
@@ -188,37 +203,65 @@
   let usersData = {};
   let currentEditUser = null;
 
-  // Fungsi untuk load data dari localStorage ke tabel
   function loadUsers() {
     usersData = JSON.parse(localStorage.getItem('users')) || {};
+
+    // Tambahkan joinDate jika belum ada
+    let updated = false;
+    for (const user in usersData) {
+      if (!usersData[user].joinDate) {
+        usersData[user].joinDate = new Date().toISOString().split('T')[0];
+        updated = true;
+      }
+    }
+    if (updated) {
+      localStorage.setItem('users', JSON.stringify(usersData));
+    }
+
     const tbody = document.querySelector('#usersTable tbody');
     tbody.innerHTML = '';
-    if(Object.keys(usersData).length === 0){
-      tbody.innerHTML = `<tr><td colspan="8">Belum ada data pemain terdaftar.</td></tr>`;
+
+    const searchId = document.getElementById('searchUserId').value.toLowerCase();
+    const searchDate = document.getElementById('searchJoinDate').value;
+
+    const filteredUsers = Object.entries(usersData).filter(([userId, u]) => {
+      const idMatch = userId.toLowerCase().includes(searchId);
+      const dateMatch = searchDate ? (u.joinDate === searchDate) : true;
+      return idMatch && dateMatch;
+    });
+
+    if (filteredUsers.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9">Tidak ditemukan pemain yang cocok.</td></tr>`;
       return;
     }
 
-    for (const user in usersData) {
-      const u = usersData[user];
+    for (const [user, u] of filteredUsers) {
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${user}</td>
         <td>********</td>
-        <td>${u.balance.toLocaleString()}</td>
-        <td>${u.rekening}</td>
-        <td>${u.namaRekening}</td>
-        <td>${u.phone}</td>
-        <td>${u.bank}</td>
+        <td>${(u.balance || 0).toLocaleString()}</td>
+        <td>${u.rekening || ''}</td>
+        <td>${u.namaRekening || ''}</td>
+        <td>${u.phone || ''}</td>
+        <td>${u.bank || ''}</td>
+        <td>${u.joinDate || '-'}</td>
         <td>
           <button onclick="editUser('${user}')">Edit</button>
         </td>
       `;
       tbody.appendChild(tr);
     }
+
     hideEditSection();
   }
 
-  // Tampilkan form edit dengan data user
+  function resetSearch() {
+    document.getElementById('searchUserId').value = '';
+    document.getElementById('searchJoinDate').value = '';
+    loadUsers();
+  }
+
   function editUser(userId) {
     currentEditUser = userId;
     const u = usersData[userId];
@@ -228,10 +271,10 @@
     document.getElementById('editPassword').value = '';
     document.getElementById('addBalance').value = 0;
     document.getElementById('withdrawBalance').value = 0;
-    document.getElementById('editRekNum').value = u.rekening;
-    document.getElementById('editRekName').value = u.namaRekening;
-    document.getElementById('editPhone').value = u.phone;
-    document.getElementById('editBankType').value = u.bank;
+    document.getElementById('editRekNum').value = u.rekening || '';
+    document.getElementById('editRekName').value = u.namaRekening || '';
+    document.getElementById('editPhone').value = u.phone || '';
+    document.getElementById('editBankType').value = u.bank || '';
 
     document.getElementById('editMsg').textContent = '';
     showEditSection();
@@ -244,25 +287,21 @@
     document.getElementById('editSection').style.display = 'none';
   }
 
-  // Simpan perubahan user
   function saveUserEdit() {
     if(!currentEditUser) return;
 
     let u = usersData[currentEditUser];
 
-    // Password
     const newPass = document.getElementById('editPassword').value.trim();
     if(newPass){
       u.password = newPass;
     }
 
-    // Tambah saldo
     const addBal = parseInt(document.getElementById('addBalance').value) || 0;
     if(addBal > 0){
       u.balance = (u.balance || 0) + addBal;
     }
 
-    // Tarik saldo
     const withdrawBal = parseInt(document.getElementById('withdrawBalance').value) || 0;
     if(withdrawBal > 0){
       if(withdrawBal > (u.balance || 0)){
@@ -273,7 +312,6 @@
       }
     }
 
-    // Rekening dan lainnya
     const rekNum = document.getElementById('editRekNum').value.trim();
     const rekName = document.getElementById('editRekName').value.trim();
     const phone = document.getElementById('editPhone').value.trim();
@@ -289,13 +327,11 @@
     u.phone = phone;
     u.bank = bank;
 
-    // Simpan ke localStorage
     usersData[currentEditUser] = u;
     localStorage.setItem('users', JSON.stringify(usersData));
 
     document.getElementById('editMsg').textContent = `Data pemain ${currentEditUser} berhasil disimpan!`;
     loadUsers();
-    // tetap tampilkan form edit agar admin bisa cek hasilnya
   }
 
   function cancelEdit(){
@@ -303,7 +339,6 @@
     hideEditSection();
   }
 
-  // Load otomatis saat buka halaman
   window.onload = () => {
     loadUsers();
   }
