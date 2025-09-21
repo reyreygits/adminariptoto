@@ -98,31 +98,65 @@
   <label>Ubah No. Rekening:</label>
   <input type="text" id="adminRekNum" placeholder="Nomor Rekening Baru" />
 
+  <label>Ubah No. HP:</label>
+  <input type="text" id="adminPhone" placeholder="Nomor HP Baru" />
+
+  <label>Ubah Bank:</label>
+  <select id="adminBank">
+    <option value="">-- Pilih Bank / E‑Wallet --</option>
+    <option>Bank BCA</option>
+    <option>Bank BNI</option>
+    <option>Bank BRI</option>
+    <option>Bank Mandiri</option>
+    <option>DANA</option>
+    <option>OVO</option>
+    <option>Gopay</option>
+    <option>ShopeePay</option>
+  </select>
+
   <button onclick="saveUserChanges()">Simpan Perubahan</button>
 
   <div class="message" id="adminMessage"></div>
 </div>
 
 <script>
-// Data user (mock DB)
-let users = {
-  'arip123': {
-    password: 'aripPass',
-    balance: 1000000,
-    rekName: 'Arip Toto',
-    rekNum: '1234567890',
-    phone: '08123456789',
-    bank: 'Bank BCA',
-  },
-  'user2': {
-    password: 'passuser2',
-    balance: 500000,
-    rekName: 'User Dua',
-    rekNum: '9876543210',
-    phone: '08987654321',
-    bank: 'Bank Mandiri',
+// ======= Simulasi "database" pakai localStorage =======
+const STORAGE_KEY = 'ariptoto_users';
+
+function loadUsers() {
+  let data = localStorage.getItem(STORAGE_KEY);
+  if (!data) {
+    // Inisialisasi dengan data contoh jika belum ada
+    const defaultUsers = {
+      'arip123': {
+        password: 'aripPass',
+        balance: 1000000,
+        rekName: 'Arip Toto',
+        rekNum: '1234567890',
+        phone: '08123456789',
+        bank: 'Bank BCA',
+      },
+      'user2': {
+        password: 'passuser2',
+        balance: 500000,
+        rekName: 'User Dua',
+        rekNum: '9876543210',
+        phone: '08987654321',
+        bank: 'Bank Mandiri',
+      }
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultUsers));
+    return defaultUsers;
   }
-};
+  return JSON.parse(data);
+}
+
+function saveUsers(users) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+}
+
+// Data user
+let users = loadUsers();
 
 const userListDiv = document.getElementById('userList');
 const adminUserId = document.getElementById('adminUserId');
@@ -131,16 +165,17 @@ const adminAddBalance = document.getElementById('adminAddBalance');
 const adminWithdrawBalance = document.getElementById('adminWithdrawBalance');
 const adminRekName = document.getElementById('adminRekName');
 const adminRekNum = document.getElementById('adminRekNum');
+const adminPhone = document.getElementById('adminPhone');
+const adminBank = document.getElementById('adminBank');
 const adminMessage = document.getElementById('adminMessage');
 
 let selectedUser = null;
 
-// Tampilkan daftar user dalam tabel lengkap
 function refreshUserList() {
+  users = loadUsers(); // refresh data dari storage
   userListDiv.innerHTML = '';
   const table = document.createElement('table');
 
-  // Header tabel
   const header = document.createElement('tr');
   ['User ID', 'Nama Rekening', 'No. Rekening', 'Bank', 'Saldo (Rp)'].forEach(text => {
     const th = document.createElement('th');
@@ -149,39 +184,24 @@ function refreshUserList() {
   });
   table.appendChild(header);
 
-  // Baris user
   Object.keys(users).forEach(userId => {
     const user = users[userId];
     const tr = document.createElement('tr');
     tr.onclick = () => selectUser(userId);
 
-    const tdUserId = document.createElement('td');
-    tdUserId.textContent = userId;
-    tr.appendChild(tdUserId);
-
-    const tdRekName = document.createElement('td');
-    tdRekName.textContent = user.rekName;
-    tr.appendChild(tdRekName);
-
-    const tdRekNum = document.createElement('td');
-    tdRekNum.textContent = user.rekNum;
-    tr.appendChild(tdRekNum);
-
-    const tdBank = document.createElement('td');
-    tdBank.textContent = user.bank;
-    tr.appendChild(tdBank);
-
-    const tdBalance = document.createElement('td');
-    tdBalance.textContent = user.balance.toLocaleString('id-ID');
-    tr.appendChild(tdBalance);
-
+    tr.innerHTML = `
+      <td>${userId}</td>
+      <td>${user.rekName}</td>
+      <td>${user.rekNum}</td>
+      <td>${user.bank}</td>
+      <td>${user.balance.toLocaleString('id-ID')}</td>
+    `;
     table.appendChild(tr);
   });
 
   userListDiv.appendChild(table);
 }
 
-// Pilih user dari daftar
 function selectUser(userId) {
   selectedUser = userId;
   const u = users[userId];
@@ -191,66 +211,135 @@ function selectUser(userId) {
   adminWithdrawBalance.value = '';
   adminRekName.value = u.rekName;
   adminRekNum.value = u.rekNum;
+  adminPhone.value = u.phone || '';
+  adminBank.value = u.bank || '';
   adminMessage.textContent = '';
 }
 
-// Validasi angka positif (untuk saldo)
-function isPositiveNumber(value) {
-  return !isNaN(value) && value > 0;
-}
-
-// Simpan perubahan ke user
 function saveUserChanges() {
   if (!selectedUser) {
-    adminMessage.textContent = 'Pilih user terlebih dahulu!';
     adminMessage.style.color = 'red';
+    adminMessage.textContent = 'Pilih user terlebih dahulu.';
     return;
   }
-  const user = users[selectedUser];
+  const u = users[selectedUser];
 
-  // Reset Password
-  const newPass = adminResetPass.value.trim();
-  if (newPass.length > 0) {
-    user.password = newPass;
+  // Update password jika ada input
+  if (adminResetPass.value.trim() !== '') {
+    u.password = adminResetPass.value.trim();
   }
 
-  // Tambah saldo
-  const addBalance = Number(adminAddBalance.value);
-  if (isPositiveNumber(addBalance)) {
-    user.balance += addBalance;
+  // Update balance
+  let addBal = Number(adminAddBalance.value);
+  if (!isNaN(addBal) && addBal > 0) {
+    u.balance += addBal;
   }
 
-  // Tarik saldo
-  const withdrawBalance = Number(adminWithdrawBalance.value);
-  if (isPositiveNumber(withdrawBalance)) {
-    if (user.balance >= withdrawBalance) {
-      user.balance -= withdrawBalance;
+  let withdrawBal = Number(adminWithdrawBalance.value);
+  if (!isNaN(withdrawBal) && withdrawBal > 0) {
+    if (withdrawBal <= u.balance) {
+      u.balance -= withdrawBal;
     } else {
-      adminMessage.textContent = 'Saldo tidak cukup untuk tarik!';
       adminMessage.style.color = 'red';
+      adminMessage.textContent = 'Saldo tidak cukup untuk penarikan.';
       return;
     }
   }
 
-  // Update rekening
-  const rekNameNew = adminRekName.value.trim();
-  if (rekNameNew.length > 0) {
-    user.rekName = rekNameNew;
+  // Update rekName, rekNum, phone, bank
+  u.rekName = adminRekName.value.trim();
+  u.rekNum = adminRekNum.value.trim();
+  u.phone = adminPhone.value.trim();
+  u.bank = adminBank.value;
+
+  saveUsers(users);
+  refreshUserList();
+
+  // Kirim update ke webset 1 (sinkronisasi) - Simulasi API call
+  syncUpdateToWebset1(selectedUser, u);
+
+  adminMessage.style.color = 'lime';
+  adminMessage.textContent = 'Perubahan berhasil disimpan dan tersinkronisasi ke webset 1.';
+}
+
+function syncUpdateToWebset1(userId, userData) {
+  // Simulasi fetch API ke Webset 1
+  console.log(`Mengirim update user ${userId} ke webset 1...`);
+  // Di implementasi asli, gunakan fetch POST/PUT ke webset 1 API
+  // Contoh:
+  // fetch('https://domain-webset1.com/api/updateUser/' + userId, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(userData)})
+  // .then(...)
+
+  // Untuk demo, kita simpan juga di localStorage untuk webset 1 agar bisa demo sinkron
+  localStorage.setItem('webset1_user_' + userId, JSON.stringify(userData));
+}
+
+// API Simulasi untuk webset 1 melakukan GET, POST, PUT ke webset 2
+
+// GET user data (misal untuk sync di webset1)
+function apiGetUser(userId) {
+  users = loadUsers();
+  if(users[userId]) return {success:true, data: users[userId]};
+  else return {success:false, message:'User tidak ditemukan'};
+}
+
+// POST user baru
+function apiAddUser(userData) {
+  users = loadUsers();
+  if(users[userData.user]) {
+    return {success:false, message:'User sudah ada'};
   }
-  const rekNumNew = adminRekNum.value.trim();
-  if (rekNumNew.length > 0) {
-    user.rekNum = rekNumNew;
+  users[userData.user] = {
+    password: userData.pass,
+    balance: 0,
+    rekName: userData.rekName,
+    rekNum: userData.rekNum,
+    phone: userData.phone,
+    bank: userData.bank,
+  };
+  saveUsers(users);
+  refreshUserList();
+  return {success:true};
+}
+
+// PUT update user
+function apiUpdateUser(userId, updateData) {
+  users = loadUsers();
+  if(!users[userId]) {
+    return {success:false, message:'User tidak ditemukan'};
   }
+  Object.assign(users[userId], updateData);
+  saveUsers(users);
+  refreshUserList();
+  return {success:true};
+}
 
-  adminMessage.textContent = 'Perubahan berhasil disimpan!';
-  adminMessage.style.color = 'limegreen';
-
-  // Bersihkan input kecuali userId dan rekening fields
-  adminResetPass.value = '';
-  adminAddBalance.value = '';
-  adminWithdrawBalance.value = '';
-
-  refreshUserList(); // refresh tabel agar saldo terbaru muncul
+// Untuk demo, override fetch agar bisa panggil fungsi API di sini jika domain sama
+window.mockFetch = async function(url, options = {}) {
+  // console.log('mockFetch:', url, options);
+  if(url.endsWith('/api/users') && options.method === 'POST') {
+    const body = JSON.parse(options.body);
+    const res = apiAddUser(body);
+    return {
+      json: async () => res
+    };
+  }
+  if(url.includes('/api/users/') && options.method === 'PUT') {
+    const userId = url.split('/').pop();
+    const body = JSON.parse(options.body);
+    const res = apiUpdateUser(userId, body);
+    return {
+      json: async () => res
+    };
+  }
+  if(url.includes('/api/users/') && (!options.method || options.method === 'GET')) {
+    const userId = url.split('/').pop();
+    const res = apiGetUser(userId);
+    return {
+      json: async () => res
+    };
+  }
+  return fetch(url, options); // fallback
 }
 
 refreshUserList();
