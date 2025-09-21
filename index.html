@@ -87,10 +87,10 @@
   <input type="password" id="adminResetPass" placeholder="Password baru" />
 
   <label>Tambah Saldo (Rp):</label>
-  <input type="number" id="adminAddBalance" placeholder="Jumlah tambah saldo" />
+  <input type="number" id="adminAddBalance" placeholder="Jumlah tambah saldo" min="0" />
 
   <label>Tarik Saldo (Rp):</label>
-  <input type="number" id="adminWithdrawBalance" placeholder="Jumlah tarik saldo" />
+  <input type="number" id="adminWithdrawBalance" placeholder="Jumlah tarik saldo" min="0" />
 
   <label>Ubah Nama Rekening:</label>
   <input type="text" id="adminRekName" placeholder="Nama Rekening Baru" />
@@ -104,7 +104,7 @@
 </div>
 
 <script>
-// Simulasi data user yang tersimpan (mock DB)
+// Data user (mock DB)
 let users = {
   'arip123': {
     password: 'aripPass',
@@ -194,6 +194,11 @@ function selectUser(userId) {
   adminMessage.textContent = '';
 }
 
+// Validasi angka positif (untuk saldo)
+function isPositiveNumber(value) {
+  return !isNaN(value) && value > 0;
+}
+
 // Simpan perubahan ke user
 function saveUserChanges() {
   if (!selectedUser) {
@@ -211,13 +216,13 @@ function saveUserChanges() {
 
   // Tambah saldo
   const addBalance = Number(adminAddBalance.value);
-  if (!isNaN(addBalance) && addBalance > 0) {
+  if (isPositiveNumber(addBalance)) {
     user.balance += addBalance;
   }
 
   // Tarik saldo
   const withdrawBalance = Number(adminWithdrawBalance.value);
-  if (!isNaN(withdrawBalance) && withdrawBalance > 0) {
+  if (isPositiveNumber(withdrawBalance)) {
     if (user.balance >= withdrawBalance) {
       user.balance -= withdrawBalance;
     } else {
@@ -240,7 +245,7 @@ function saveUserChanges() {
   adminMessage.textContent = 'Perubahan berhasil disimpan!';
   adminMessage.style.color = 'limegreen';
 
-  // Bersihkan input kecuali userId dan rek fields
+  // Bersihkan input kecuali userId dan rekening fields
   adminResetPass.value = '';
   adminAddBalance.value = '';
   adminWithdrawBalance.value = '';
