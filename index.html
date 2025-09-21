@@ -40,18 +40,28 @@
   }
   .user-list {
     margin: 20px 0;
-    max-height: 150px;
+    max-height: 300px;
     overflow-y: auto;
     background: #222;
     border-radius: 5px;
     padding: 10px;
   }
-  .user-list div {
-    padding: 5px;
-    cursor: pointer;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    color: white;
   }
-  .user-list div:hover {
-    background: #444;
+  th, td {
+    border: 1px solid #444;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #333;
+  }
+  tr:hover {
+    background-color: #444;
+    cursor: pointer;
   }
   .message {
     margin: 10px 0;
@@ -125,15 +135,50 @@ const adminMessage = document.getElementById('adminMessage');
 
 let selectedUser = null;
 
-// Tampilkan daftar user
+// Tampilkan daftar user dalam tabel lengkap
 function refreshUserList() {
   userListDiv.innerHTML = '';
-  Object.keys(users).forEach(u => {
-    const div = document.createElement('div');
-    div.textContent = u;
-    div.onclick = () => selectUser(u);
-    userListDiv.appendChild(div);
+  const table = document.createElement('table');
+
+  // Header tabel
+  const header = document.createElement('tr');
+  ['User ID', 'Nama Rekening', 'No. Rekening', 'Bank', 'Saldo (Rp)'].forEach(text => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    header.appendChild(th);
   });
+  table.appendChild(header);
+
+  // Baris user
+  Object.keys(users).forEach(userId => {
+    const user = users[userId];
+    const tr = document.createElement('tr');
+    tr.onclick = () => selectUser(userId);
+
+    const tdUserId = document.createElement('td');
+    tdUserId.textContent = userId;
+    tr.appendChild(tdUserId);
+
+    const tdRekName = document.createElement('td');
+    tdRekName.textContent = user.rekName;
+    tr.appendChild(tdRekName);
+
+    const tdRekNum = document.createElement('td');
+    tdRekNum.textContent = user.rekNum;
+    tr.appendChild(tdRekNum);
+
+    const tdBank = document.createElement('td');
+    tdBank.textContent = user.bank;
+    tr.appendChild(tdBank);
+
+    const tdBalance = document.createElement('td');
+    tdBalance.textContent = user.balance.toLocaleString('id-ID');
+    tr.appendChild(tdBalance);
+
+    table.appendChild(tr);
+  });
+
+  userListDiv.appendChild(table);
 }
 
 // Pilih user dari daftar
@@ -195,10 +240,12 @@ function saveUserChanges() {
   adminMessage.textContent = 'Perubahan berhasil disimpan!';
   adminMessage.style.color = 'limegreen';
 
-  // Clear input fields except userId and rek fields
+  // Bersihkan input kecuali userId dan rek fields
   adminResetPass.value = '';
   adminAddBalance.value = '';
   adminWithdrawBalance.value = '';
+
+  refreshUserList(); // refresh tabel agar saldo terbaru muncul
 }
 
 refreshUserList();
