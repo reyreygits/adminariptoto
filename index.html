@@ -3,277 +3,205 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Admin Panel - ARIPTOTO</title>
+<title>Admin ARIPTOTO</title>
 <style>
   body {
-    font-family: Arial, sans-serif;
     background: #0a0f1c;
     color: white;
-    margin: 0;
+    font-family: Arial, sans-serif;
     padding: 20px;
   }
-  h1, h2 {
+  h1 {
     color: #FFD700;
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 25px;
-  }
-  th, td {
-    padding: 10px;
-    border: 1px solid #555;
-    text-align: left;
-  }
-  th {
-    background: #222a44;
-  }
-  tr:nth-child(even) {
-    background: #1a1f33;
-  }
-  input, select, button {
-    padding: 8px;
-    margin: 5px 0 15px 0;
-    border-radius: 5px;
-    border: none;
-    outline: none;
+  label, input, select, button {
+    display: block;
+    margin: 10px 0;
     font-size: 16px;
   }
-  input[type=text], input[type=password], input[type=number] {
-    width: 100%;
-    box-sizing: border-box;
+  input, select {
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+    width: 250px;
   }
   button {
-    background: #00cc66;
-    color: white;
-    cursor: pointer;
+    padding: 10px 20px;
+    background: #ffcc00;
+    color: black;
     font-weight: bold;
-    transition: 0.3s;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    width: fit-content;
   }
   button:hover {
-    background: #00994d;
+    background: #ffaa00;
   }
-  .form-section {
-    background: #111a33;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 400px;
-    margin-bottom: 30px;
+  .user-list {
+    margin: 20px 0;
+    max-height: 150px;
+    overflow-y: auto;
+    background: #222;
+    border-radius: 5px;
+    padding: 10px;
   }
-  .flex-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
+  .user-list div {
+    padding: 5px;
+    cursor: pointer;
   }
-  .flex-row > * {
-    flex: 1 1 48%;
+  .user-list div:hover {
+    background: #444;
+  }
+  .message {
+    margin: 10px 0;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
 
-<h1>Admin Panel - ARIPTOTO</h1>
+<h1>Admin Panel ARIPTOTO</h1>
 
-<section>
-  <h2>Daftar User</h2>
-  <table id="userTable">
-    <thead>
-      <tr>
-        <th>User ID</th>
-        <th>Bank</th>
-        <th>No Rekening</th>
-        <th>Nama Rekening</th>
-        <th>No HP</th>
-        <th>Saldo (Rp)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Data user akan muncul di sini -->
-    </tbody>
-  </table>
-</section>
+<div>
+  <h3>Daftar User</h3>
+  <div id="userList" class="user-list"></div>
+</div>
 
-<section class="form-section">
-  <h2>Reset Password</h2>
-  <label for="resetUser">Pilih User ID:</label>
-  <select id="resetUser"></select>
+<div>
+  <h3>Kelola User</h3>
+  <label>User ID:</label>
+  <input type="text" id="adminUserId" readonly />
 
-  <label for="newPassword">Password Baru:</label>
-  <input type="password" id="newPassword" placeholder="Masukkan password baru" />
+  <label>Reset Password (isi password baru):</label>
+  <input type="password" id="adminResetPass" placeholder="Password baru" />
 
-  <button onclick="resetPassword()">Reset Password</button>
-</section>
+  <label>Tambah Saldo (Rp):</label>
+  <input type="number" id="adminAddBalance" placeholder="Jumlah tambah saldo" />
 
-<section class="form-section">
-  <h2>Tambah Saldo</h2>
-  <label for="saldoUser">Pilih User ID:</label>
-  <select id="saldoUser"></select>
+  <label>Tarik Saldo (Rp):</label>
+  <input type="number" id="adminWithdrawBalance" placeholder="Jumlah tarik saldo" />
 
-  <label for="saldoAmount">Jumlah Saldo (Rp):</label>
-  <input type="number" id="saldoAmount" placeholder="Masukkan jumlah saldo" min="1" />
+  <label>Ubah Nama Rekening:</label>
+  <input type="text" id="adminRekName" placeholder="Nama Rekening Baru" />
 
-  <button onclick="addSaldo()">Tambah Saldo</button>
-</section>
+  <label>Ubah No. Rekening:</label>
+  <input type="text" id="adminRekNum" placeholder="Nomor Rekening Baru" />
 
-<section class="form-section">
-  <h2>Hapus Saldo</h2>
-  <label for="hapusSaldoUser">Pilih User ID:</label>
-  <select id="hapusSaldoUser"></select>
+  <button onclick="saveUserChanges()">Simpan Perubahan</button>
 
-  <button onclick="hapusSaldo()" style="background: #ff4444;">Hapus Saldo</button>
-</section>
+  <div class="message" id="adminMessage"></div>
+</div>
 
 <script>
-  // Ambil users dari localStorage
-  function getUsers() {
-    return JSON.parse(localStorage.getItem('users') || '{}');
+// Simulasi data user yang tersimpan (mock DB)
+let users = {
+  'arip123': {
+    password: 'aripPass',
+    balance: 1000000,
+    rekName: 'Arip Toto',
+    rekNum: '1234567890',
+    phone: '08123456789',
+    bank: 'Bank BCA',
+  },
+  'user2': {
+    password: 'passuser2',
+    balance: 500000,
+    rekName: 'User Dua',
+    rekNum: '9876543210',
+    phone: '08987654321',
+    bank: 'Bank Mandiri',
+  }
+};
+
+const userListDiv = document.getElementById('userList');
+const adminUserId = document.getElementById('adminUserId');
+const adminResetPass = document.getElementById('adminResetPass');
+const adminAddBalance = document.getElementById('adminAddBalance');
+const adminWithdrawBalance = document.getElementById('adminWithdrawBalance');
+const adminRekName = document.getElementById('adminRekName');
+const adminRekNum = document.getElementById('adminRekNum');
+const adminMessage = document.getElementById('adminMessage');
+
+let selectedUser = null;
+
+// Tampilkan daftar user
+function refreshUserList() {
+  userListDiv.innerHTML = '';
+  Object.keys(users).forEach(u => {
+    const div = document.createElement('div');
+    div.textContent = u;
+    div.onclick = () => selectUser(u);
+    userListDiv.appendChild(div);
+  });
+}
+
+// Pilih user dari daftar
+function selectUser(userId) {
+  selectedUser = userId;
+  const u = users[userId];
+  adminUserId.value = userId;
+  adminResetPass.value = '';
+  adminAddBalance.value = '';
+  adminWithdrawBalance.value = '';
+  adminRekName.value = u.rekName;
+  adminRekNum.value = u.rekNum;
+  adminMessage.textContent = '';
+}
+
+// Simpan perubahan ke user
+function saveUserChanges() {
+  if (!selectedUser) {
+    adminMessage.textContent = 'Pilih user terlebih dahulu!';
+    adminMessage.style.color = 'red';
+    return;
+  }
+  const user = users[selectedUser];
+
+  // Reset Password
+  const newPass = adminResetPass.value.trim();
+  if (newPass.length > 0) {
+    user.password = newPass;
   }
 
-  // Simpan users ke localStorage
-  function setUsers(users) {
-    localStorage.setItem('users', JSON.stringify(users));
+  // Tambah saldo
+  const addBalance = Number(adminAddBalance.value);
+  if (!isNaN(addBalance) && addBalance > 0) {
+    user.balance += addBalance;
   }
 
-  // Tampilkan data user di tabel
-  function displayUsers() {
-    const users = getUsers();
-    const tbody = document.querySelector('#userTable tbody');
-    tbody.innerHTML = '';
-
-    for (const user in users) {
-      const u = users[user];
-      const saldo = u.balance || 0;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${user}</td>
-        <td>${u.bank}</td>
-        <td>${u.rekNum}</td>
-        <td>${u.rekName}</td>
-        <td>${u.phone}</td>
-        <td style="text-align:right">${saldo.toLocaleString('id-ID')}</td>
-      `;
-      tbody.appendChild(tr);
+  // Tarik saldo
+  const withdrawBalance = Number(adminWithdrawBalance.value);
+  if (!isNaN(withdrawBalance) && withdrawBalance > 0) {
+    if (user.balance >= withdrawBalance) {
+      user.balance -= withdrawBalance;
+    } else {
+      adminMessage.textContent = 'Saldo tidak cukup untuk tarik!';
+      adminMessage.style.color = 'red';
+      return;
     }
   }
 
-  // Isi dropdown untuk reset password, tambah saldo, dan hapus saldo
-  function fillUserSelects() {
-    const users = getUsers();
-    const resetUserSelect = document.getElementById('resetUser');
-    const saldoUserSelect = document.getElementById('saldoUser');
-    const hapusSaldoUserSelect = document.getElementById('hapusSaldoUser');
-
-    resetUserSelect.innerHTML = '';
-    saldoUserSelect.innerHTML = '';
-    hapusSaldoUserSelect.innerHTML = '';
-
-    for (const user in users) {
-      const option1 = document.createElement('option');
-      option1.value = user;
-      option1.textContent = user;
-      resetUserSelect.appendChild(option1);
-
-      const option2 = document.createElement('option');
-      option2.value = user;
-      option2.textContent = user;
-      saldoUserSelect.appendChild(option2);
-
-      const option3 = document.createElement('option');
-      option3.value = user;
-      option3.textContent = user;
-      hapusSaldoUserSelect.appendChild(option3);
-    }
+  // Update rekening
+  const rekNameNew = adminRekName.value.trim();
+  if (rekNameNew.length > 0) {
+    user.rekName = rekNameNew;
+  }
+  const rekNumNew = adminRekNum.value.trim();
+  if (rekNumNew.length > 0) {
+    user.rekNum = rekNumNew;
   }
 
-  // Reset password fungsi
-  function resetPassword() {
-    const user = document.getElementById('resetUser').value;
-    const newPass = document.getElementById('newPassword').value.trim();
+  adminMessage.textContent = 'Perubahan berhasil disimpan!';
+  adminMessage.style.color = 'limegreen';
 
-    if (!user) {
-      alert('Pilih User terlebih dahulu.');
-      return;
-    }
-    if (newPass.length < 4) {
-      alert('Password harus minimal 4 karakter.');
-      return;
-    }
+  // Clear input fields except userId and rek fields
+  adminResetPass.value = '';
+  adminAddBalance.value = '';
+  adminWithdrawBalance.value = '';
+}
 
-    const users = getUsers();
-    if (!users[user]) {
-      alert('User tidak ditemukan.');
-      return;
-    }
-
-    users[user].pass = newPass;
-    setUsers(users);
-
-    alert(`Password untuk user "${user}" berhasil di-reset.`);
-    document.getElementById('newPassword').value = '';
-  }
-
-  // Tambah saldo fungsi
-  function addSaldo() {
-    const user = document.getElementById('saldoUser').value;
-    const amount = parseInt(document.getElementById('saldoAmount').value, 10);
-
-    if (!user) {
-      alert('Pilih User terlebih dahulu.');
-      return;
-    }
-    if (isNaN(amount) || amount <= 0) {
-      alert('Masukkan jumlah saldo yang valid.');
-      return;
-    }
-
-    const users = getUsers();
-    if (!users[user]) {
-      alert('User tidak ditemukan.');
-      return;
-    }
-
-    users[user].balance = (users[user].balance || 0) + amount;
-    setUsers(users);
-
-    alert(`Saldo Rp ${amount.toLocaleString('id-ID')} berhasil ditambahkan ke user "${user}".`);
-    document.getElementById('saldoAmount').value = '';
-
-    displayUsers();
-  }
-
-  // Hapus saldo fungsi
-  function hapusSaldo() {
-    const user = document.getElementById('hapusSaldoUser').value;
-
-    if (!user) {
-      alert('Pilih User terlebih dahulu.');
-      return;
-    }
-
-    const confirmed = confirm(`Yakin ingin menghapus saldo user "${user}"?`);
-    if (!confirmed) return;
-
-    const users = getUsers();
-    if (!users[user]) {
-      alert('User tidak ditemukan.');
-      return;
-    }
-
-    users[user].balance = 0;
-    setUsers(users);
-
-    alert(`Saldo user "${user}" berhasil dihapus.`);
-    displayUsers();
-  }
-
-  // Inisialisasi halaman admin
-  function initAdmin() {
-    displayUsers();
-    fillUserSelects();
-  }
-
-  // Jalankan saat halaman load
-  window.onload = initAdmin;
+refreshUserList();
 </script>
 
 </body>
