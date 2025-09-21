@@ -2,436 +2,312 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ARIPTOTO - Full Web</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin ARIPTOTO</title>
   <style>
-    /* Reset & Base */
-    body { margin: 0; font-family: Arial, sans-serif; background: #0a0f1c; color: white; overflow-x: hidden; }
-
-    /* Header */
-    header { 
-      background: #111a33; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      padding: 10px 20px; 
-      position: sticky; 
-      top: 0; 
-      z-index: 10; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      flex-wrap: wrap;
+    body {
+      background: #0a0f1c;
+      color: white;
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
     }
-    header .logo { 
-      font-size: 22px; 
-      font-weight: bold; 
-      color: #FFD700; 
-      letter-spacing: 1px; 
-      flex-shrink: 0;
-    }
-    header .login-form { 
-      display: flex; 
-      gap: 10px; 
-      flex-wrap: wrap;
-      flex-grow: 1;
-      justify-content: flex-end;
-    }
-    header input { 
-      padding: 6px; 
-      border-radius: 5px; 
-      border: none; 
-      outline: none; 
-      min-width: 100px;
-      flex: 1 1 auto;
-      max-width: 150px;
-    }
-    header button { 
-      padding: 6px 12px; 
-      border: none; 
-      border-radius: 5px; 
-      cursor: pointer; 
-      font-weight: bold; 
-      transition: all 0.3s ease; 
-      flex: 1 1 auto;
-      max-width: 120px;
-    }
-    .btn-login { background: #ff4444; color: white; }
-    .btn-daftar { background: #00cc66; color: white; }
-    header button:hover { 
-      transform: scale(1.05); 
-      opacity: 0.9; 
-    }
-
-    /* Banner Promo */
-    .banner { 
-      text-align: center; 
-      margin: 30px auto; 
-      padding: 50px 20px; 
-      background: linear-gradient(135deg, #1e3c72, #2a5298); 
-      border-radius: 15px; 
-      max-width: 900px; 
-      box-shadow: 0px 5px 20px rgba(0,0,0,0.6); 
-      animation: fadeInUp 1s ease; 
-    }
-    .banner h1 { 
-      font-size: 40px; 
-      margin-bottom: 15px; 
-      color: #FFD700; 
-      animation: fadeIn 2s ease; 
-    }
-    .banner p { 
-      font-size: 20px; 
-      color: #ddd; 
-      animation: fadeIn 2.5s ease; 
-    }
-    .banner .btn-main { 
-      margin-top: 20px; 
-      padding: 12px 25px; 
-      font-size: 18px; 
-      border: none; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      background: #ffcc00; 
-      color: black; 
-      font-weight: bold; 
-      transition: 0.3s; 
-      max-width: 300px;
-      width: 100%;
-    }
-    .banner .btn-main:hover { 
-      background: #ffaa00; 
-      transform: scale(1.05); 
-    }
-
-    /* Menu User */
-    .menu { 
-      display: flex; 
-      gap: 15px; 
-      flex-wrap: wrap;
-    }
-    .menu a { 
-      color: #FFD700; 
-      text-decoration: none; 
-      font-weight: bold; 
-      transition: 0.3s; 
-    }
-    .menu a:hover { color: #ff4444; }
-
-    /* Container */
-    .container { 
-      padding: 20px; 
-      animation: fadeIn 1s ease; 
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    /* Cards */
-    .card { 
-      background: #2a2a2a; 
-      border-radius: 8px; 
-      padding: 15px; 
-      margin-bottom: 15px; 
-      transition: transform 0.3s ease; 
-      box-shadow: 0 6px 15px rgba(0,0,0,0.4); 
-    }
-    .card:hover { transform: translateY(-5px); }
-    .card h3 { margin-top: 0; color: #ff4444; }
-
-    /* Grid */
-    .grid { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 15px; 
-    }
-
-    /* Center Image */
-    .center-image {
-      display: block;
-      margin: 20px auto;
-      max-width: 80%;
-      height: auto;
-      border-radius: 8px;
-    }
-
-    /* Form Daftar */
-    .form-box { 
-      background: #1c1c1c; 
-      padding: 30px; 
-      border-radius: 10px; 
-      width: 350px; 
-      margin: 60px auto; 
-      text-align: center; 
-      animation: fadeInDown 1s ease; 
-      box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
-    }
-    .form-box h2 { color: #FFD700; margin-bottom: 20px; }
-    .form-box input, 
-    .form-box select { 
-      width: 100%; 
-      padding: 10px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 5px; 
-      outline: none; 
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    .form-box button { 
-      width: 100%; 
-      padding: 12px; 
-      border: none; 
-      border-radius: 5px; 
-      background: #00cc66; 
-      color: white; 
-      font-size: 16px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      transition: 0.3s; 
-    }
-    .form-box button:hover { 
-      background: #00994d; 
-      transform: scale(1.05); 
-    }
-
-    /* Page switching */
-    .page { 
-      display: none; 
-      opacity: 0; 
-      transform: translateY(20px); 
-      transition: all 0.6s ease; 
-    }
-    .active { 
-      display: block; 
-      opacity: 1; 
-      transform: translateY(0); 
-    }
-
-    /* Provider Boxes */
-    .provider-boxes {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 15px;
-      margin-top: 30px;
-      max-width: 900px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .provider-card {
-      background: #2a2a2a; 
-      padding: 20px; 
-      border-radius: 8px; 
-      text-align: center; 
-      font-weight: bold; 
-      color: #FFD700; 
-      box-shadow: 0 6px 15px rgba(255,215,0,0.4); 
-      cursor: default; 
+    header {
+      background: #111a33;
+      padding: 15px 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #FFD700;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
       user-select: none;
     }
-
-    /* Animations */
-    @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
-    @keyframes fadeInUp { from {opacity: 0; transform: translateY(40px);} to {opacity: 1; transform: translateY(0);} }
-    @keyframes fadeInDown { from {opacity: 0; transform: translateY(-40px);} to {opacity: 1; transform: translateY(0);} }
-
-    /* Responsive untuk Mobile */
-    @media screen and (max-width: 768px) {
-      header {
+    main {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 15px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      color: white;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background: #222f5f;
+      color: #FFD700;
+    }
+    tr:nth-child(even) {
+      background: #1c244f;
+    }
+    input[type=text], input[type=password], input[type=number] {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 5px;
+      border: none;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 7px 12px;
+      background: #FFD700;
+      border: none;
+      border-radius: 6px;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      margin-top: 5px;
+      width: 100%;
+    }
+    button:hover {
+      background: #ffaa00;
+    }
+    .action-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .action-group > div {
+      flex: 1 1 150px;
+    }
+    .section-title {
+      font-size: 20px;
+      margin-top: 30px;
+      color: #FFD700;
+      border-bottom: 2px solid #FFD700;
+      padding-bottom: 5px;
+    }
+    .msg {
+      margin-top: 10px;
+      color: #00cc66;
+      font-weight: bold;
+    }
+    @media(max-width: 768px){
+      .action-group {
         flex-direction: column;
-        align-items: flex-start;
-      }
-
-      header .login-form {
-        flex-direction: column;
-        width: 100%;
-        margin-top: 10px;
-      }
-
-      header input, 
-      header button {
-        width: 100%;
-        max-width: 100%;
-        margin-bottom: 8px;
-      }
-
-      .banner {
-        padding: 30px 15px;
-        max-width: 100%;
-      }
-      .banner h1 {
-        font-size: 26px;
-      }
-      .banner p {
-        font-size: 16px;
-      }
-      .banner .btn-main {
-        font-size: 16px;
-      }
-      .center-image {
-        max-width: 100%;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .provider-boxes {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .form-box {
-        width: 90%;
-        margin: 30px auto;
-        padding: 20px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Halaman Utama -->
-  <div id="home" class="page active">
-    <header>
-      <div class="logo">ARIPTOTO</div>
-      <div class="login-form">
-        <input type="text" id="userLogin" placeholder="User ID" />
-        <input type="password" id="passLogin" placeholder="Kata Sandi" />
-        <button class="btn-login" onclick="login()">Login</button>
-        <button class="btn-daftar" onclick="showPage('daftar')">Daftar</button>
-      </div>
-    </header>
+<header>Admin Panel - ARIPTOTO</header>
+<main>
 
-    <div class="banner">
-      <h1>🎉 WELCOME TO ARIPTOTO 🎉</h1>
-      <p>Situs terbaik di Asia • Aman & 100% Resmi</p>
-      <button class="btn-main">Main Sekarang</button>
-
-      <!-- Gambar tengah bawah tulisan banner -->
-      <img src="https://raw.githubusercontent.com/reyreygits/ariptoto11/8c6b6bc656f69037edc448d4997d0d9d784e8711/poto.png2" alt="Gambar Banner" class="center-image" />
-    </div>
+  <div>
+    <button onclick="loadUsers()">Muat Data Pemain</button>
   </div>
 
-  <!-- Halaman Daftar -->
-  <div id="daftar" class="page">
-    <div class="form-box">
-      <h2>Form Pendaftaran</h2>
-      <input type="text" id="newUser" placeholder="User ID" />
-      <input type="password" id="newPass" placeholder="Kata Sandi" />
-      <input type="text" id="rekNum" placeholder="No. Rekening" />
-      <input type="text" id="rekName" placeholder="Nama Rekening" />
-      <input type="text" id="phoneNum" placeholder="No. HP" />
-      <select id="bankType">
-        <option value="">-- Pilih Bank / E‑Wallet --</option>
-        <option>Bank BCA</option>
-        <option>Bank BNI</option>
-        <option>Bank BRI</option>
-        <option>Bank Mandiri</option>
-        <option>DANA</option>
-        <option>OVO</option>
-        <option>Gopay</option>
-        <option>ShopeePay</option>
-      </select>
-      <button onclick="register()">Daftar</button>
-      <br /><br />
-      <button style="background:#ff4444" onclick="showPage('home')">Kembali</button>
-    </div>
+  <div class="section-title">Daftar Pemain Terdaftar</div>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Password</th>
+        <th>Saldo (Rp)</th>
+        <th>No. Rekening</th>
+        <th>Nama Rekening</th>
+        <th>No. HP</th>
+        <th>Bank / E-Wallet</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data user muncul di sini -->
+    </tbody>
+  </table>
+
+  <div class="section-title">Edit Data Pemain</div>
+  <div id="editSection" style="display:none;">
+    <form id="editForm" onsubmit="return false;">
+      <table style="width: 100%; max-width: 600px; margin-top: 10px;">
+        <tr>
+          <td>User ID:</td>
+          <td><input type="text" id="editUserId" readonly /></td>
+        </tr>
+        <tr>
+          <td>Ubah Password:</td>
+          <td><input type="password" id="editPassword" placeholder="Kosongkan jika tidak ingin ganti" /></td>
+        </tr>
+        <tr>
+          <td>Tambah Saldo (Rp):</td>
+          <td><input type="number" id="addBalance" min="0" value="0" /></td>
+        </tr>
+        <tr>
+          <td>Tarik Saldo (Rp):</td>
+          <td><input type="number" id="withdrawBalance" min="0" value="0" /></td>
+        </tr>
+        <tr>
+          <td>Nomor Rekening:</td>
+          <td><input type="text" id="editRekNum" /></td>
+        </tr>
+        <tr>
+          <td>Nama Rekening:</td>
+          <td><input type="text" id="editRekName" /></td>
+        </tr>
+        <tr>
+          <td>Nomor HP:</td>
+          <td><input type="text" id="editPhone" /></td>
+        </tr>
+        <tr>
+          <td>Bank / E-Wallet:</td>
+          <td>
+            <select id="editBankType">
+              <option value="">-- Pilih Bank / E‑Wallet --</option>
+              <option>Bank BCA</option>
+              <option>Bank BNI</option>
+              <option>Bank BRI</option>
+              <option>Bank Mandiri</option>
+              <option>DANA</option>
+              <option>OVO</option>
+              <option>Gopay</option>
+              <option>ShopeePay</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2">
+            <button onclick="saveUserEdit()">Simpan Perubahan</button>
+            <button type="button" onclick="cancelEdit()" style="background:#ff4444; margin-left: 10px;">Batal</button>
+          </td>
+        </tr>
+      </table>
+    </form>
+    <div class="msg" id="editMsg"></div>
   </div>
 
-  <!-- Halaman User Area -->
-  <div id="userarea" class="page">
-    <header>
-      <div class="logo">ARIPTOTO - User Area</div>
-      <div class="menu">
-        <a href="#">History</a>
-        <a href="#">Deposit</a>
-        <a href="#">Withdraw</a>
-        <a href="#">Rekening</a>
-        <a href="#">Memo</a>
-        <a href="#" onclick="logout()">Logout</a>
-      </div>
-    </header>
+</main>
 
-    <div class="container">
-      <div class="grid">
-        <div class="card">
-          <h3>User Data</h3>
-          <p id="userData">Balance: Rp 0</p>
-          <p id="bankData"></p>
-          <p id="phoneData"></p>
-        </div>
-        <div class="card">
-          <h3>Last Bet/Win Report</h3>
-          <p>No Data</p>
-        </div>
-        <div class="card">
-          <h3>Last Deposit/Withdraw Status</h3>
-          <p>No Data</p>
-        </div>
-      </div>
+<script>
+  let usersData = {};
+  let currentEditUser = null;
 
-      <!-- Provider Boxes -->
-      <div class="provider-boxes">
-        <div class="provider-card">Pragmatic</div>
-        <div class="provider-card">PG Soft</div>
-        <div class="provider-card">No Limit</div>
-        <div class="provider-card">Habanhero</div>
-      </div>
-
-      <!-- Link daftar user -->
-      <div style="text-align:center; margin-top:30px;">
-        <a href="list.html" style="color:#FFD700; text-decoration: underline;">Lihat Daftar User Terdaftar</a>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function showPage(pageId) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(pageId).classList.add('active');
+  // Fungsi untuk load data dari localStorage ke tabel
+  function loadUsers() {
+    usersData = JSON.parse(localStorage.getItem('users')) || {};
+    const tbody = document.querySelector('#usersTable tbody');
+    tbody.innerHTML = '';
+    if(Object.keys(usersData).length === 0){
+      tbody.innerHTML = `<tr><td colspan="8">Belum ada data pemain terdaftar.</td></tr>`;
+      return;
     }
 
-    function register() {
-      let user = document.getElementById('newUser').value.trim();
-      let pass = document.getElementById('newPass').value.trim();
-      let rekNum = document.getElementById('rekNum').value.trim();
-      let rekName = document.getElementById('rekName').value.trim();
-      let phone = document.getElementById('phoneNum').value.trim();
-      let bank = document.getElementById('bankType').value;
+    for (const user in usersData) {
+      const u = usersData[user];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${user}</td>
+        <td>********</td>
+        <td>${u.balance.toLocaleString()}</td>
+        <td>${u.rekening}</td>
+        <td>${u.namaRekening}</td>
+        <td>${u.phone}</td>
+        <td>${u.bank}</td>
+        <td>
+          <button onclick="editUser('${user}')">Edit</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+    hideEditSection();
+  }
 
-      if(user && pass && rekNum && rekName && phone && bank){
-        let users = JSON.parse(localStorage.getItem('users') || '{}');
-        if(users[user]){
-          alert('User ID sudah terdaftar.');
-        } else {
-          users[user] = { pass, rekNum, rekName, phone, bank, balance: 0 };
-          localStorage.setItem('users', JSON.stringify(users));
-          alert('Pendaftaran berhasil! Silahkan login.');
-          showPage('home');
-        }
+  // Tampilkan form edit dengan data user
+  function editUser(userId) {
+    currentEditUser = userId;
+    const u = usersData[userId];
+    if(!u) return;
+
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editPassword').value = '';
+    document.getElementById('addBalance').value = 0;
+    document.getElementById('withdrawBalance').value = 0;
+    document.getElementById('editRekNum').value = u.rekening;
+    document.getElementById('editRekName').value = u.namaRekening;
+    document.getElementById('editPhone').value = u.phone;
+    document.getElementById('editBankType').value = u.bank;
+
+    document.getElementById('editMsg').textContent = '';
+    showEditSection();
+  }
+
+  function showEditSection() {
+    document.getElementById('editSection').style.display = 'block';
+  }
+  function hideEditSection() {
+    document.getElementById('editSection').style.display = 'none';
+  }
+
+  // Simpan perubahan user
+  function saveUserEdit() {
+    if(!currentEditUser) return;
+
+    let u = usersData[currentEditUser];
+
+    // Password
+    const newPass = document.getElementById('editPassword').value.trim();
+    if(newPass){
+      u.password = newPass;
+    }
+
+    // Tambah saldo
+    const addBal = parseInt(document.getElementById('addBalance').value) || 0;
+    if(addBal > 0){
+      u.balance = (u.balance || 0) + addBal;
+    }
+
+    // Tarik saldo
+    const withdrawBal = parseInt(document.getElementById('withdrawBalance').value) || 0;
+    if(withdrawBal > 0){
+      if(withdrawBal > (u.balance || 0)){
+        alert('Saldo tidak cukup untuk penarikan!');
+        return;
       } else {
-        alert('Harap isi semua data.');
+        u.balance -= withdrawBal;
       }
     }
 
-    function login() {
-      let user = document.getElementById('userLogin').value.trim();
-      let pass = document.getElementById('passLogin').value.trim();
+    // Rekening dan lainnya
+    const rekNum = document.getElementById('editRekNum').value.trim();
+    const rekName = document.getElementById('editRekName').value.trim();
+    const phone = document.getElementById('editPhone').value.trim();
+    const bank = document.getElementById('editBankType').value;
 
-      let users = JSON.parse(localStorage.getItem('users') || '{}');
-      if(users[user] && users[user].pass === pass){
-        // Login success
-        showPage('userarea');
-        document.getElementById('userData').innerText = `User: ${user} | Balance: Rp ${users[user].balance}`;
-        document.getElementById('bankData').innerText = `Rekening: ${users[user].rekNum} (${users[user].rekName})`;
-        document.getElementById('phoneData').innerText = `No HP: ${users[user].phone} | Bank: ${users[user].bank}`;
-      } else {
-        alert('User ID atau kata sandi salah.');
-      }
+    if(!rekNum || !rekName || !phone || !bank) {
+      alert('Semua field rekening, nama, phone, dan bank harus diisi!');
+      return;
     }
 
-    function logout() {
-      showPage('home');
-      document.getElementById('userLogin').value = '';
-      document.getElementById('passLogin').value = '';
-    }
-  </script>
+    u.rekening = rekNum;
+    u.namaRekening = rekName;
+    u.phone = phone;
+    u.bank = bank;
+
+    // Simpan ke localStorage
+    usersData[currentEditUser] = u;
+    localStorage.setItem('users', JSON.stringify(usersData));
+
+    document.getElementById('editMsg').textContent = `Data pemain ${currentEditUser} berhasil disimpan!`;
+    loadUsers();
+    // tetap tampilkan form edit agar admin bisa cek hasilnya
+  }
+
+  function cancelEdit(){
+    currentEditUser = null;
+    hideEditSection();
+  }
+
+  // Load otomatis saat buka halaman
+  window.onload = () => {
+    loadUsers();
+  }
+</script>
+
 </body>
 </html>
