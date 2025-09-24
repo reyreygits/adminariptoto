@@ -1,81 +1,99 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ARIPTOTO - Webseat Control</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARIPTOTO - Webseat Control</title>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0a0f1c;
-      color: white;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #111a33;
-      padding: 15px 20px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      color: #FFD700;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    table {
-      width: 95%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    }
-    th, td {
-      padding: 10px 8px;
-      text-align: center;
-    }
-    th {
-      background: #1b2a4b;
-      color: #FFD700;
-    }
-    tr:nth-child(even) { background: #161c2d; }
-    tr:hover { background: #22336a; }
-    input {
-      width: 90%;
-      padding: 5px;
-      background: #1c1c1c;
-      color: white;
-      border: 1px solid #555;
-      border-radius: 5px;
-      text-align: center;
-    }
-    button {
-      padding: 5px 8px;
-      margin: 2px;
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .btn-add { background: #00cc66; color: white; }
-    .btn-sub { background: #ff4444; color: white; }
-    .btn-pass { background: #ffaa00; color: black; }
-    button:hover { opacity: 0.85; transform: scale(1.05); }
-    @media (max-width: 768px) {
-      table, th, td { font-size: 12px; }
-      input { width: 80%; padding: 4px; }
-      button { padding: 4px 6px; font-size: 12px; }
-    }
-  </style>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #0a0f1c;
+    color: white;
+    margin: 0;
+    padding: 0;
+  }
+  header {
+    background: #111a33;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    color: #FFD700;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+  }
+  .search-container {
+    width: 95%;
+    margin: 20px auto;
+    text-align: right;
+  }
+  .search-container input {
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    width: 250px;
+    background: #1c1c1c;
+    color: white;
+  }
+  table {
+    width: 95%;
+    margin: 10px auto 30px auto;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  th, td {
+    padding: 10px 8px;
+    text-align: center;
+  }
+  th {
+    background: #1b2a4b;
+    color: #FFD700;
+  }
+  tr:nth-child(even) { background: #161c2d; }
+  tr:hover { background: #22336a; }
+  input.field-input {
+    width: 90%;
+    padding: 5px;
+    background: #1c1c1c;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 5px;
+    text-align: center;
+  }
+  button {
+    padding: 5px 8px;
+    margin: 2px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-add { background: #00cc66; color: white; }
+  .btn-sub { background: #ff4444; color: white; }
+  .btn-pass { background: #ffaa00; color: black; }
+  button:hover { opacity: 0.85; transform: scale(1.05); }
+  @media (max-width: 768px) {
+    table, th, td { font-size: 12px; }
+    input.field-input { width: 80%; padding: 4px; }
+    button { padding: 4px 6px; font-size: 12px; }
+    .search-container input { width: 70%; }
+  }
+</style>
 </head>
 <body>
 
 <header>ARIPTOTO - Webseat Control</header>
+
+<div class="search-container">
+  <input type="text" id="searchBox" placeholder="Cari User ID, Nama Rekening, Bank..." onkeyup="filterTable()">
+</div>
 
 <table>
   <thead>
@@ -86,6 +104,7 @@
       <th>Bank</th>
       <th>No HP</th>
       <th>Saldo</th>
+      <th>Tanggal Masuk</th>
       <th>Aksi</th>
     </tr>
   </thead>
@@ -105,29 +124,54 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  let usersData = [];
+
   // Realtime User Data
   db.collection('users').orderBy('namaRekening').onSnapshot(snapshot => {
+    usersData = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if(!data.createdAt){
+        data.createdAt = new Date().toISOString();
+        db.collection('users').doc(doc.id).update({createdAt: data.createdAt});
+      }
+      usersData.push({id: doc.id, ...data});
+    });
+    renderTable(usersData);
+  });
+
+  function renderTable(data){
     const tbody = document.getElementById('userTable');
     tbody.innerHTML = '';
-    snapshot.forEach(doc => {
-      const d = doc.data();
+    data.forEach(d => {
       tbody.innerHTML += `
         <tr>
-          <td>${doc.id}</td>
-          <td><input value="${d.namaRekening}" onchange="updateField('${doc.id}','namaRekening',this.value)"></td>
-          <td><input value="${d.rekening}" onchange="updateField('${doc.id}','rekening',this.value)"></td>
-          <td><input value="${d.bank}" onchange="updateField('${doc.id}','bank',this.value)"></td>
-          <td><input value="${d.phone}" onchange="updateField('${doc.id}','phone',this.value)"></td>
+          <td>${d.id}</td>
+          <td><input class="field-input" value="${d.namaRekening}" onchange="updateField('${d.id}','namaRekening',this.value)"></td>
+          <td><input class="field-input" value="${d.rekening}" onchange="updateField('${d.id}','rekening',this.value)"></td>
+          <td><input class="field-input" value="${d.bank}" onchange="updateField('${d.id}','bank',this.value)"></td>
+          <td><input class="field-input" value="${d.phone}" onchange="updateField('${d.id}','phone',this.value)"></td>
           <td>${d.balance.toLocaleString()}</td>
+          <td>${new Date(d.createdAt).toLocaleDateString()}</td>
           <td>
-            <button class="btn-add" onclick="addBalance('${doc.id}', ${d.balance})">Tambah</button>
-            <button class="btn-sub" onclick="subtractBalance('${doc.id}', ${d.balance})">Tarik</button>
-            <button class="btn-pass" onclick="resetPass('${doc.id}')">Reset Pass</button>
+            <button class="btn-add" onclick="addBalance('${d.id}', ${d.balance})">Tambah</button>
+            <button class="btn-sub" onclick="subtractBalance('${d.id}', ${d.balance})">Tarik</button>
+            <button class="btn-pass" onclick="resetPass('${d.id}')">Reset Pass</button>
           </td>
         </tr>
       `;
     });
-  });
+  }
+
+  function filterTable(){
+    const query = document.getElementById('searchBox').value.toLowerCase();
+    const filtered = usersData.filter(u =>
+      u.id.toLowerCase().includes(query) ||
+      u.namaRekening.toLowerCase().includes(query) ||
+      u.bank.toLowerCase().includes(query)
+    );
+    renderTable(filtered);
+  }
 
   function updateField(userId, field, value){
     db.collection('users').doc(userId).update({[field]: value});
