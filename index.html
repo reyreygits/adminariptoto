@@ -1,14 +1,48 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>ARIPTOTO - Admin Panel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARIPTOTO - Webseat Control</title>
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    body { font-family: Arial, sans-serif; background: #0a0f1c; color: white; margin: 0; padding: 0; }
+    header { background: #111a33; padding: 15px 20px; text-align: center; font-size: 24px; font-weight: bold; color: #FFD700; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+    th { background: #222; }
+    tr:nth-child(even) { background: #1c1c1c; }
+    input { width: 90%; padding: 4px; background: #222; color: white; border: 1px solid #555; border-radius: 4px; }
+    button { padding: 5px 10px; background: #00cc66; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 4px; margin:2px; }
+    button:hover { background: #00994d; }
+    @media (max-width: 768px) { table, th, td { font-size: 12px; } input { width: 80%; } }
+  </style>
+</head>
+<body>
+
+<header>ARIPTOTO - Webseat Control</header>
+
+<table>
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>Nama Rekening</th>
+      <th>No Rekening</th>
+      <th>Bank</th>
+      <th>No HP</th>
+      <th>Saldo</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody id="userTable"></tbody>
+</table>
 
 <script>
+  // ===== Firebase Config =====
   const firebaseConfig = {
     apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
     authDomain: "ariptoto-web.firebaseapp.com",
@@ -19,107 +53,54 @@
   };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-</script>
 
-<style>
-body {
-  margin:0; font-family:Arial,sans-serif; background:#0a0f1c; color:white;
-}
-header { background:#111a33; padding:10px 20px; text-align:center; font-size:20px; font-weight:bold; color:#FFD700; }
-table { width:100%; border-collapse:collapse; margin-top:15px; }
-th, td { border:1px solid #444; padding:8px; text-align:center; font-size:14px; }
-th { background:#222; color:#FFD700; }
-td { background:#1c1c1c; }
-button { padding:5px 8px; margin:2px; border:none; border-radius:4px; cursor:pointer; font-size:12px; }
-.reset { background:#ff4444; color:white; }
-.add { background:#00cc66; color:white; }
-.withdraw { background:#ff9900; color:white; }
-.edit { background:#0099ff; color:white; }
-input { width:60px; padding:3px; border-radius:3px; border:none; text-align:center; font-size:12px; }
-@media(max-width:768px){ th, td, input, button{font-size:10px; padding:4px;} }
-</style>
-</head>
-<body>
-
-<header>ARIPTOTO - Admin Panel</header>
-
-<table id="usersTable">
-  <thead>
-    <tr>
-      <th>User ID</th>
-      <th>Nama Rekening</th>
-      <th>No Rekening</th>
-      <th>Bank</th>
-      <th>No HP</th>
-      <th>Saldo</th>
-      <th>Join Date</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Data users akan muncul di sini -->
-  </tbody>
-</table>
-
-<script>
-async function loadUsers(){
-  const tbody = document.querySelector("#usersTable tbody");
-  tbody.innerHTML = "";
-  const snapshot = await db.collection("users").orderBy("joinDate", "desc").get();
-  snapshot.forEach(doc=>{
-    const data = doc.data();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${doc.id}</td>
-      <td><input value="${data.namaRekening || ''}" onchange="updateField('${doc.id}','namaRekening',this.value)" /></td>
-      <td><input value="${data.rekening || ''}" onchange="updateField('${doc.id}','rekening',this.value)" /></td>
-      <td>${data.bank || ''}</td>
-      <td>${data.phone || ''}</td>
-      <td>
-        Rp <input type="number" value="${data.balance || 0}" id="balance-${doc.id}" /> 
-        <button class="add" onclick="addBalance('${doc.id}')">+</button>
-        <button class="withdraw" onclick="withdrawBalance('${doc.id}')">-</button>
-      </td>
-      <td>${data.joinDate ? new Date(data.joinDate.seconds*1000).toLocaleString() : ''}</td>
-      <td>
-        <button class="reset" onclick="resetPassword('${doc.id}')">Reset Sandi</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
+  // ===== Realtime User Data =====
+  db.collection('users').orderBy('namaRekening').onSnapshot(snapshot => {
+    const tbody = document.getElementById('userTable');
+    tbody.innerHTML = '';
+    snapshot.forEach(doc => {
+      const d = doc.data();
+      tbody.innerHTML += `
+        <tr>
+          <td>${doc.id}</td>
+          <td><input value="${d.namaRekening}" onchange="updateField('${doc.id}','namaRekening',this.value)"></td>
+          <td><input value="${d.rekening}" onchange="updateField('${doc.id}','rekening',this.value)"></td>
+          <td><input value="${d.bank}" onchange="updateField('${doc.id}','bank',this.value)"></td>
+          <td><input value="${d.phone}" onchange="updateField('${doc.id}','phone',this.value)"></td>
+          <td>${d.balance.toLocaleString()}</td>
+          <td>
+            <button onclick="addBalance('${doc.id}', ${d.balance})">Tambah Saldo</button>
+            <button onclick="subtractBalance('${doc.id}', ${d.balance})">Tarik Saldo</button>
+            <button onclick="resetPass('${doc.id}')">Reset Pass</button>
+          </td>
+        </tr>
+      `;
+    });
   });
-}
 
-async function updateField(userId, field, value){
-  await db.collection("users").doc(userId).update({ [field]: value });
-  alert(`${field} berhasil diubah!`);
-}
-
-async function addBalance(userId){
-  const input = document.getElementById(`balance-${userId}`);
-  const amount = parseInt(input.value) || 0;
-  await db.collection("users").doc(userId).update({ balance: amount });
-  alert(`Saldo ${userId} ditambahkan menjadi Rp ${amount.toLocaleString()}`);
-  loadUsers();
-}
-
-async function withdrawBalance(userId){
-  const input = document.getElementById(`balance-${userId}`);
-  const amount = parseInt(input.value) || 0;
-  await db.collection("users").doc(userId).update({ balance: amount });
-  alert(`Saldo ${userId} ditarik menjadi Rp ${amount.toLocaleString()}`);
-  loadUsers();
-}
-
-async function resetPassword(userId){
-  const newPass = prompt("Masukkan password baru untuk " + userId);
-  if(newPass){
-    await db.collection("users").doc(userId).update({ password: newPass });
-    alert(`Password ${userId} berhasil direset!`);
+  function updateField(userId, field, value){
+    db.collection('users').doc(userId).update({[field]: value});
   }
-}
 
-// Load users saat pertama kali
-loadUsers();
+  function addBalance(userId, currentBalance){
+    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditambahkan:', '0'));
+    if(!isNaN(amount) && amount>0){
+      db.collection('users').doc(userId).update({ balance: currentBalance + amount });
+    }
+  }
+
+  function subtractBalance(userId, currentBalance){
+    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditarik:', '0'));
+    if(!isNaN(amount) && amount>0){
+      const newBalance = Math.max(0, currentBalance - amount);
+      db.collection('users').doc(userId).update({ balance: newBalance });
+    }
+  }
+
+  function resetPass(userId){
+    const newPass = prompt(`Masukkan password baru untuk ${userId}`);
+    if(newPass) db.collection('users').doc(userId).update({password:newPass});
+  }
 </script>
 
 </body>
