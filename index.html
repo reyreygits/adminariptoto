@@ -4,6 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin ARIPTOTO</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
+      authDomain: "ariptoto-web.firebaseapp.com",
+      projectId: "ariptoto-web",
+      storageBucket: "ariptoto-web.appspot.com",
+      messagingSenderId: "129200594109",
+      appId: "1:129200594109:web:50f7f4ce89a384211b2bd4"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+
   <style>
     body {
       background: #0a0f1c;
@@ -105,13 +123,12 @@
     <button onclick="loadUsers()">Muat Data Pemain</button>
   </div>
 
-  <!-- Filter/Search -->
   <div class="action-group">
     <div>
-      <input type="text" id="searchUserId" placeholder="Cari berdasarkan User ID" oninput="loadUsers()" />
+      <input type="text" id="searchUserId" placeholder="Cari berdasarkan User ID" oninput="renderUsersTable()" />
     </div>
     <div>
-      <input type="date" id="searchJoinDate" oninput="loadUsers()" />
+      <input type="date" id="searchJoinDate" oninput="renderUsersTable()" />
     </div>
     <div>
       <button onclick="resetSearch()">Reset Filter</button>
@@ -189,7 +206,7 @@
         <tr>
           <td colspan="2">
             <button onclick="saveUserEdit()">Simpan Perubahan</button>
-            <button type="button" onclick="cancelEdit()" style="background:#ff4444; margin-left: 10px;">Batal</button>
+            <button type="button" onclick="cancelEdit()" style="background:#ff4444; margin-left:10px;">Batal</button>
           </td>
         </tr>
       </table>
@@ -203,70 +220,72 @@
   let usersData = {};
   let currentEditUser = null;
 
-  function loadUsers() {
-    usersData = JSON.parse(localStorage.getItem('users')) || {};
-
-    // Tambahkan joinDate jika belum ada
-    let updated = false;
-    for (const user in usersData) {
-      if (!usersData[user].joinDate) {
-        usersData[user].joinDate = new Date().toISOString().split('T')[0];
-        updated = true;
-      }
+  async function loadUsers() {
+    try {
+      const snapshot = await db.collection('users').get();
+      usersData = {};
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        usersData[doc.id] = {
+          password: d.password,
+          balance: d.balance,
+          rekening: d.rekening,
+          namaRekening: d.namaRekening,
+          phone: d.phone,
+          bank: d.bank,
+          joinDate: d.joinDate || ''
+        };
+      });
+      renderUsersTable();
+    } catch (err) {
+      console.error('Error load users:', err);
     }
-    if (updated) {
-      localStorage.setItem('users', JSON.stringify(usersData));
-    }
+  }
 
+  function renderUsersTable() {
     const tbody = document.querySelector('#usersTable tbody');
     tbody.innerHTML = '';
 
     const searchId = document.getElementById('searchUserId').value.toLowerCase();
     const searchDate = document.getElementById('searchJoinDate').value;
 
-    const filteredUsers = Object.entries(usersData).filter(([userId, u]) => {
-      const idMatch = userId.toLowerCase().includes(searchId);
-      const dateMatch = searchDate ? (u.joinDate === searchDate) : true;
-      return idMatch && dateMatch;
-    });
+    let any = false;
+    for (const userId in usersData) {
+      const u = usersData[userId];
+      if (searchId && !userId.toLowerCase().includes(searchId)) continue;
+      if (searchDate && u.joinDate && u.joinDate !== searchDate) continue;
 
-    if (filteredUsers.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9">Tidak ditemukan pemain yang cocok.</td></tr>`;
-      return;
-    }
-
-    for (const [user, u] of filteredUsers) {
+      any = true;
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${user}</td>
+        <td>${userId}</td>
         <td>********</td>
         <td>${(u.balance || 0).toLocaleString()}</td>
         <td>${u.rekening || ''}</td>
         <td>${u.namaRekening || ''}</td>
         <td>${u.phone || ''}</td>
         <td>${u.bank || ''}</td>
-        <td>${u.joinDate || '-'}</td>
-        <td>
-          <button onclick="editUser('${user}')">Edit</button>
-        </td>
+        <td>${u.joinDate || ''}</td>
+        <td><button onclick="editUser('${userId}')">Edit</button></td>
       `;
       tbody.appendChild(tr);
     }
-
+    if (!any) {
+      tbody.innerHTML = `<tr><td colspan="9">Tidak ditemukan pemain yang cocok.</td></tr>`;
+    }
     hideEditSection();
   }
 
   function resetSearch() {
     document.getElementById('searchUserId').value = '';
     document.getElementById('searchJoinDate').value = '';
-    loadUsers();
+    renderUsersTable();
   }
 
   function editUser(userId) {
     currentEditUser = userId;
     const u = usersData[userId];
-    if(!u) return;
-
+    if (!u) return;
     document.getElementById('editUserId').value = userId;
     document.getElementById('editPassword').value = '';
     document.getElementById('addBalance').value = 0;
@@ -275,7 +294,6 @@
     document.getElementById('editRekName').value = u.namaRekening || '';
     document.getElementById('editPhone').value = u.phone || '';
     document.getElementById('editBankType').value = u.bank || '';
-
     document.getElementById('editMsg').textContent = '';
     showEditSection();
   }
@@ -287,54 +305,61 @@
     document.getElementById('editSection').style.display = 'none';
   }
 
-  function saveUserEdit() {
-    if(!currentEditUser) return;
-
-    let u = usersData[currentEditUser];
-
+  async function saveUserEdit() {
+    if (!currentEditUser) return;
+    const u = usersData[currentEditUser];
     const newPass = document.getElementById('editPassword').value.trim();
-    if(newPass){
-      u.password = newPass;
-    }
-
     const addBal = parseInt(document.getElementById('addBalance').value) || 0;
-    if(addBal > 0){
-      u.balance = (u.balance || 0) + addBal;
-    }
-
     const withdrawBal = parseInt(document.getElementById('withdrawBalance').value) || 0;
-    if(withdrawBal > 0){
-      if(withdrawBal > (u.balance || 0)){
-        alert('Saldo tidak cukup untuk penarikan!');
-        return;
-      } else {
-        u.balance -= withdrawBal;
-      }
-    }
-
     const rekNum = document.getElementById('editRekNum').value.trim();
     const rekName = document.getElementById('editRekName').value.trim();
     const phone = document.getElementById('editPhone').value.trim();
     const bank = document.getElementById('editBankType').value;
 
-    if(!rekNum || !rekName || !phone || !bank) {
-      alert('Semua field rekening, nama, phone, dan bank harus diisi!');
+    if (!rekNum || !rekName || !phone || !bank) {
+      alert('Semua field rekening, nama rekening, phone, bank wajib diisi!');
       return;
     }
 
+    if (newPass) {
+      u.password = newPass;
+    }
+    if (addBal > 0) {
+      u.balance = (u.balance || 0) + addBal;
+    }
+    if (withdrawBal > 0) {
+      if (withdrawBal > (u.balance || 0)) {
+        alert('Saldo tidak cukup untuk penarikan!');
+        return;
+      }
+      u.balance = (u.balance || 0) - withdrawBal;
+    }
     u.rekening = rekNum;
     u.namaRekening = rekName;
     u.phone = phone;
     u.bank = bank;
 
-    usersData[currentEditUser] = u;
-    localStorage.setItem('users', JSON.stringify(usersData));
-
-    document.getElementById('editMsg').textContent = `Data pemain ${currentEditUser} berhasil disimpan!`;
-    loadUsers();
+    try {
+      const updateObj = {
+        rekening: rekNum,
+        namaRekening: rekName,
+        phone: phone,
+        bank: bank,
+        balance: u.balance
+      };
+      if (newPass) {
+        updateObj.password = newPass;
+      }
+      await db.collection('users').doc(currentEditUser).update(updateObj);
+      document.getElementById('editMsg').textContent = `Data ${currentEditUser} berhasil disimpan!`;
+      loadUsers();
+    } catch (err) {
+      console.error('Error simpan edit:', err);
+      alert('Gagal menyimpan perubahan.');
+    }
   }
 
-  function cancelEdit(){
+  function cancelEdit() {
     currentEditUser = null;
     hideEditSection();
   }
