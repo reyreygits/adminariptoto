@@ -1,372 +1,125 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin ARIPTOTO</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ARIPTOTO - Admin Panel</title>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
-      authDomain: "ariptoto-web.firebaseapp.com",
-      projectId: "ariptoto-web",
-      storageBucket: "ariptoto-web.appspot.com",
-      messagingSenderId: "129200594109",
-      appId: "1:129200594109:web:50f7f4ce89a384211b2bd4"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-  </script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
+    authDomain: "ariptoto-web.firebaseapp.com",
+    projectId: "ariptoto-web",
+    storageBucket: "ariptoto-web.appspot.com",
+    messagingSenderId: "129200594109",
+    appId: "1:129200594109:web:50f7f4ce89a384211b2bd4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
-  <style>
-    body {
-      background: #0a0f1c;
-      color: white;
-      font-family: Arial, sans-serif;
-      margin: 0; padding: 0;
-    }
-    header {
-      background: #111a33;
-      padding: 15px 20px;
-      font-size: 22px;
-      font-weight: bold;
-      color: #FFD700;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      user-select: none;
-    }
-    main {
-      max-width: 1200px;
-      margin: 20px auto;
-      padding: 0 15px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      color: white;
-    }
-    th, td {
-      border: 1px solid #555;
-      padding: 10px 8px;
-      text-align: center;
-      font-size: 14px;
-    }
-    th {
-      background: #222f5f;
-      color: #FFD700;
-    }
-    tr:nth-child(even) {
-      background: #1c244f;
-    }
-    input[type=text], input[type=password], input[type=number], input[type=date] {
-      width: 100%;
-      padding: 6px 8px;
-      border-radius: 5px;
-      border: none;
-      font-size: 14px;
-      box-sizing: border-box;
-    }
-    button {
-      padding: 7px 12px;
-      background: #FFD700;
-      border: none;
-      border-radius: 6px;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      margin-top: 5px;
-      width: 100%;
-    }
-    button:hover {
-      background: #ffaa00;
-    }
-    .action-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 15px;
-    }
-    .action-group > div {
-      flex: 1 1 200px;
-    }
-    .section-title {
-      font-size: 20px;
-      margin-top: 30px;
-      color: #FFD700;
-      border-bottom: 2px solid #FFD700;
-      padding-bottom: 5px;
-    }
-    .msg {
-      margin-top: 10px;
-      color: #00cc66;
-      font-weight: bold;
-    }
-    @media(max-width: 768px){
-      .action-group {
-        flex-direction: column;
-      }
-    }
-  </style>
+<style>
+body {
+  margin:0; font-family:Arial,sans-serif; background:#0a0f1c; color:white;
+}
+header { background:#111a33; padding:10px 20px; text-align:center; font-size:20px; font-weight:bold; color:#FFD700; }
+table { width:100%; border-collapse:collapse; margin-top:15px; }
+th, td { border:1px solid #444; padding:8px; text-align:center; font-size:14px; }
+th { background:#222; color:#FFD700; }
+td { background:#1c1c1c; }
+button { padding:5px 8px; margin:2px; border:none; border-radius:4px; cursor:pointer; font-size:12px; }
+.reset { background:#ff4444; color:white; }
+.add { background:#00cc66; color:white; }
+.withdraw { background:#ff9900; color:white; }
+.edit { background:#0099ff; color:white; }
+input { width:60px; padding:3px; border-radius:3px; border:none; text-align:center; font-size:12px; }
+@media(max-width:768px){ th, td, input, button{font-size:10px; padding:4px;} }
+</style>
 </head>
 <body>
 
-<header>Admin Panel - ARIPTOTO</header>
-<main>
+<header>ARIPTOTO - Admin Panel</header>
 
-  <div>
-    <button onclick="loadUsers()">Muat Data Pemain</button>
-  </div>
-
-  <div class="action-group">
-    <div>
-      <input type="text" id="searchUserId" placeholder="Cari berdasarkan User ID" oninput="renderUsersTable()" />
-    </div>
-    <div>
-      <input type="date" id="searchJoinDate" oninput="renderUsersTable()" />
-    </div>
-    <div>
-      <button onclick="resetSearch()">Reset Filter</button>
-    </div>
-  </div>
-
-  <div class="section-title">Daftar Pemain Terdaftar</div>
-  <table id="usersTable">
-    <thead>
-      <tr>
-        <th>User ID</th>
-        <th>Password</th>
-        <th>Saldo (Rp)</th>
-        <th>No. Rekening</th>
-        <th>Nama Rekening</th>
-        <th>No. HP</th>
-        <th>Bank / E-Wallet</th>
-        <th>Tanggal Join</th>
-        <th>Aksi</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Data user muncul di sini -->
-    </tbody>
-  </table>
-
-  <div class="section-title">Edit Data Pemain</div>
-  <div id="editSection" style="display:none;">
-    <form id="editForm" onsubmit="return false;">
-      <table style="width: 100%; max-width: 600px; margin-top: 10px;">
-        <tr>
-          <td>User ID:</td>
-          <td><input type="text" id="editUserId" readonly /></td>
-        </tr>
-        <tr>
-          <td>Ubah Password:</td>
-          <td><input type="password" id="editPassword" placeholder="Kosongkan jika tidak ingin ganti" /></td>
-        </tr>
-        <tr>
-          <td>Tambah Saldo (Rp):</td>
-          <td><input type="number" id="addBalance" min="0" value="0" /></td>
-        </tr>
-        <tr>
-          <td>Tarik Saldo (Rp):</td>
-          <td><input type="number" id="withdrawBalance" min="0" value="0" /></td>
-        </tr>
-        <tr>
-          <td>Nomor Rekening:</td>
-          <td><input type="text" id="editRekNum" /></td>
-        </tr>
-        <tr>
-          <td>Nama Rekening:</td>
-          <td><input type="text" id="editRekName" /></td>
-        </tr>
-        <tr>
-          <td>Nomor HP:</td>
-          <td><input type="text" id="editPhone" /></td>
-        </tr>
-        <tr>
-          <td>Bank / E-Wallet:</td>
-          <td>
-            <select id="editBankType">
-              <option value="">-- Pilih Bank / E‑Wallet --</option>
-              <option>Bank BCA</option>
-              <option>Bank BNI</option>
-              <option>Bank BRI</option>
-              <option>Bank Mandiri</option>
-              <option>DANA</option>
-              <option>OVO</option>
-              <option>Gopay</option>
-              <option>ShopeePay</option>
-            </select>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <button onclick="saveUserEdit()">Simpan Perubahan</button>
-            <button type="button" onclick="cancelEdit()" style="background:#ff4444; margin-left:10px;">Batal</button>
-          </td>
-        </tr>
-      </table>
-    </form>
-    <div class="msg" id="editMsg"></div>
-  </div>
-
-</main>
+<table id="usersTable">
+  <thead>
+    <tr>
+      <th>User ID</th>
+      <th>Nama Rekening</th>
+      <th>No Rekening</th>
+      <th>Bank</th>
+      <th>No HP</th>
+      <th>Saldo</th>
+      <th>Join Date</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Data users akan muncul di sini -->
+  </tbody>
+</table>
 
 <script>
-  let usersData = {};
-  let currentEditUser = null;
+async function loadUsers(){
+  const tbody = document.querySelector("#usersTable tbody");
+  tbody.innerHTML = "";
+  const snapshot = await db.collection("users").orderBy("joinDate", "desc").get();
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${doc.id}</td>
+      <td><input value="${data.namaRekening || ''}" onchange="updateField('${doc.id}','namaRekening',this.value)" /></td>
+      <td><input value="${data.rekening || ''}" onchange="updateField('${doc.id}','rekening',this.value)" /></td>
+      <td>${data.bank || ''}</td>
+      <td>${data.phone || ''}</td>
+      <td>
+        Rp <input type="number" value="${data.balance || 0}" id="balance-${doc.id}" /> 
+        <button class="add" onclick="addBalance('${doc.id}')">+</button>
+        <button class="withdraw" onclick="withdrawBalance('${doc.id}')">-</button>
+      </td>
+      <td>${data.joinDate ? new Date(data.joinDate.seconds*1000).toLocaleString() : ''}</td>
+      <td>
+        <button class="reset" onclick="resetPassword('${doc.id}')">Reset Sandi</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
-  async function loadUsers() {
-    try {
-      const snapshot = await db.collection('users').get();
-      usersData = {};
-      snapshot.forEach(doc => {
-        const d = doc.data();
-        usersData[doc.id] = {
-          password: d.password,
-          balance: d.balance,
-          rekening: d.rekening,
-          namaRekening: d.namaRekening,
-          phone: d.phone,
-          bank: d.bank,
-          joinDate: d.joinDate || ''
-        };
-      });
-      renderUsersTable();
-    } catch (err) {
-      console.error('Error load users:', err);
-    }
+async function updateField(userId, field, value){
+  await db.collection("users").doc(userId).update({ [field]: value });
+  alert(`${field} berhasil diubah!`);
+}
+
+async function addBalance(userId){
+  const input = document.getElementById(`balance-${userId}`);
+  const amount = parseInt(input.value) || 0;
+  await db.collection("users").doc(userId).update({ balance: amount });
+  alert(`Saldo ${userId} ditambahkan menjadi Rp ${amount.toLocaleString()}`);
+  loadUsers();
+}
+
+async function withdrawBalance(userId){
+  const input = document.getElementById(`balance-${userId}`);
+  const amount = parseInt(input.value) || 0;
+  await db.collection("users").doc(userId).update({ balance: amount });
+  alert(`Saldo ${userId} ditarik menjadi Rp ${amount.toLocaleString()}`);
+  loadUsers();
+}
+
+async function resetPassword(userId){
+  const newPass = prompt("Masukkan password baru untuk " + userId);
+  if(newPass){
+    await db.collection("users").doc(userId).update({ password: newPass });
+    alert(`Password ${userId} berhasil direset!`);
   }
+}
 
-  function renderUsersTable() {
-    const tbody = document.querySelector('#usersTable tbody');
-    tbody.innerHTML = '';
-
-    const searchId = document.getElementById('searchUserId').value.toLowerCase();
-    const searchDate = document.getElementById('searchJoinDate').value;
-
-    let any = false;
-    for (const userId in usersData) {
-      const u = usersData[userId];
-      if (searchId && !userId.toLowerCase().includes(searchId)) continue;
-      if (searchDate && u.joinDate && u.joinDate !== searchDate) continue;
-
-      any = true;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${userId}</td>
-        <td>********</td>
-        <td>${(u.balance || 0).toLocaleString()}</td>
-        <td>${u.rekening || ''}</td>
-        <td>${u.namaRekening || ''}</td>
-        <td>${u.phone || ''}</td>
-        <td>${u.bank || ''}</td>
-        <td>${u.joinDate || ''}</td>
-        <td><button onclick="editUser('${userId}')">Edit</button></td>
-      `;
-      tbody.appendChild(tr);
-    }
-    if (!any) {
-      tbody.innerHTML = `<tr><td colspan="9">Tidak ditemukan pemain yang cocok.</td></tr>`;
-    }
-    hideEditSection();
-  }
-
-  function resetSearch() {
-    document.getElementById('searchUserId').value = '';
-    document.getElementById('searchJoinDate').value = '';
-    renderUsersTable();
-  }
-
-  function editUser(userId) {
-    currentEditUser = userId;
-    const u = usersData[userId];
-    if (!u) return;
-    document.getElementById('editUserId').value = userId;
-    document.getElementById('editPassword').value = '';
-    document.getElementById('addBalance').value = 0;
-    document.getElementById('withdrawBalance').value = 0;
-    document.getElementById('editRekNum').value = u.rekening || '';
-    document.getElementById('editRekName').value = u.namaRekening || '';
-    document.getElementById('editPhone').value = u.phone || '';
-    document.getElementById('editBankType').value = u.bank || '';
-    document.getElementById('editMsg').textContent = '';
-    showEditSection();
-  }
-
-  function showEditSection() {
-    document.getElementById('editSection').style.display = 'block';
-  }
-  function hideEditSection() {
-    document.getElementById('editSection').style.display = 'none';
-  }
-
-  async function saveUserEdit() {
-    if (!currentEditUser) return;
-    const u = usersData[currentEditUser];
-    const newPass = document.getElementById('editPassword').value.trim();
-    const addBal = parseInt(document.getElementById('addBalance').value) || 0;
-    const withdrawBal = parseInt(document.getElementById('withdrawBalance').value) || 0;
-    const rekNum = document.getElementById('editRekNum').value.trim();
-    const rekName = document.getElementById('editRekName').value.trim();
-    const phone = document.getElementById('editPhone').value.trim();
-    const bank = document.getElementById('editBankType').value;
-
-    if (!rekNum || !rekName || !phone || !bank) {
-      alert('Semua field rekening, nama rekening, phone, bank wajib diisi!');
-      return;
-    }
-
-    if (newPass) {
-      u.password = newPass;
-    }
-    if (addBal > 0) {
-      u.balance = (u.balance || 0) + addBal;
-    }
-    if (withdrawBal > 0) {
-      if (withdrawBal > (u.balance || 0)) {
-        alert('Saldo tidak cukup untuk penarikan!');
-        return;
-      }
-      u.balance = (u.balance || 0) - withdrawBal;
-    }
-    u.rekening = rekNum;
-    u.namaRekening = rekName;
-    u.phone = phone;
-    u.bank = bank;
-
-    try {
-      const updateObj = {
-        rekening: rekNum,
-        namaRekening: rekName,
-        phone: phone,
-        bank: bank,
-        balance: u.balance
-      };
-      if (newPass) {
-        updateObj.password = newPass;
-      }
-      await db.collection('users').doc(currentEditUser).update(updateObj);
-      document.getElementById('editMsg').textContent = `Data ${currentEditUser} berhasil disimpan!`;
-      loadUsers();
-    } catch (err) {
-      console.error('Error simpan edit:', err);
-      alert('Gagal menyimpan perubahan.');
-    }
-  }
-
-  function cancelEdit() {
-    currentEditUser = null;
-    hideEditSection();
-  }
-
-  window.onload = () => {
-    loadUsers();
-  }
+// Load users saat pertama kali
+loadUsers();
 </script>
 
 </body>
