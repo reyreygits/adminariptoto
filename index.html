@@ -10,16 +10,67 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { font-family: Arial, sans-serif; background: #0a0f1c; color: white; margin: 0; padding: 0; }
-    header { background: #111a33; padding: 15px 20px; text-align: center; font-size: 24px; font-weight: bold; color: #FFD700; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-    th { background: #222; }
-    tr:nth-child(even) { background: #1c1c1c; }
-    input { width: 90%; padding: 4px; background: #222; color: white; border: 1px solid #555; border-radius: 4px; }
-    button { padding: 5px 10px; background: #00cc66; border: none; color: white; font-weight: bold; cursor: pointer; border-radius: 4px; margin:2px; }
-    button:hover { background: #00994d; }
-    @media (max-width: 768px) { table, th, td { font-size: 12px; } input { width: 80%; } }
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0f1c;
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #111a33;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      color: #FFD700;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    table {
+      width: 95%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: center;
+    }
+    th {
+      background: #1b2a4b;
+      color: #FFD700;
+    }
+    tr:nth-child(even) { background: #161c2d; }
+    tr:hover { background: #22336a; }
+    input {
+      width: 90%;
+      padding: 5px;
+      background: #1c1c1c;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 5px;
+      text-align: center;
+    }
+    button {
+      padding: 5px 8px;
+      margin: 2px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .btn-add { background: #00cc66; color: white; }
+    .btn-sub { background: #ff4444; color: white; }
+    .btn-pass { background: #ffaa00; color: black; }
+    button:hover { opacity: 0.85; transform: scale(1.05); }
+    @media (max-width: 768px) {
+      table, th, td { font-size: 12px; }
+      input { width: 80%; padding: 4px; }
+      button { padding: 4px 6px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -42,7 +93,7 @@
 </table>
 
 <script>
-  // ===== Firebase Config =====
+  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
     authDomain: "ariptoto-web.firebaseapp.com",
@@ -54,7 +105,7 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  // ===== Realtime User Data =====
+  // Realtime User Data
   db.collection('users').orderBy('namaRekening').onSnapshot(snapshot => {
     const tbody = document.getElementById('userTable');
     tbody.innerHTML = '';
@@ -69,9 +120,9 @@
           <td><input value="${d.phone}" onchange="updateField('${doc.id}','phone',this.value)"></td>
           <td>${d.balance.toLocaleString()}</td>
           <td>
-            <button onclick="addBalance('${doc.id}', ${d.balance})">Tambah Saldo</button>
-            <button onclick="subtractBalance('${doc.id}', ${d.balance})">Tarik Saldo</button>
-            <button onclick="resetPass('${doc.id}')">Reset Pass</button>
+            <button class="btn-add" onclick="addBalance('${doc.id}', ${d.balance})">Tambah</button>
+            <button class="btn-sub" onclick="subtractBalance('${doc.id}', ${d.balance})">Tarik</button>
+            <button class="btn-pass" onclick="resetPass('${doc.id}')">Reset Pass</button>
           </td>
         </tr>
       `;
