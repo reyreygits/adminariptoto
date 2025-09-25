@@ -26,8 +26,6 @@ const db = firebase.firestore();
 body { font-family: Arial,sans-serif; background:#0a0f1c; color:white; margin:0; }
 header { background:#111a33; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
 .logo { font-size:22px; font-weight:bold; color:#FFD700; }
-.page { display:none; max-width:1200px; margin:20px auto; padding:20px; }
-.active { display:block; }
 table { width:100%; border-collapse:collapse; margin-top:20px; }
 th,td { border:1px solid #444; padding:8px; text-align:center; }
 th { background:#222; color:#FFD700; }
@@ -36,63 +34,30 @@ td { background:#2a2a2a; }
 .btn-delete { background:#ff4444; color:white; }
 .btn-approve { background:#00cc66; color:white; }
 .btn-reject { background:#ff6666; color:white; }
-.btn-edit { background:#ffcc00; color:black; }
-input { width:80px; padding:2px; border-radius:3px; border:none; }
+input { width:80px; padding:2px; border-radius:3px; border:none; text-align:center; }
 </style>
 </head>
 <body>
 
-<!-- Admin Login -->
-<div id="adminLogin" class="page active">
-  <header><div class="logo">ARIPTOTO - Admin Login</div></header>
-  <div style="text-align:center;margin-top:50px;">
-    <input type="text" id="adminUser" placeholder="Admin User"><br><br>
-    <input type="password" id="adminPass" placeholder="Password"><br><br>
-    <button onclick="adminLogin()" style="padding:8px 16px;">Login</button>
-  </div>
-</div>
+<header><div class="logo">ARIPTOTO - Admin Panel</div></header>
 
-<!-- Admin Panel -->
-<div id="adminPanel" class="page">
-  <header><div class="logo">ARIPTOTO - Admin Panel</div>
-  <div><button onclick="logoutAdmin()">Logout</button></div></header>
+<h2>Users List</h2>
+<table id="usersTable">
+  <thead>
+    <tr><th>UserID</th><th>Password</th><th>Nama Rekening</th><th>No Rekening</th><th>Bank</th><th>Phone</th><th>Balance</th><th>Aksi</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-  <h2>Users List</h2>
-  <table id="usersTable">
-    <thead>
-      <tr><th>UserID</th><th>Password</th><th>Rekening</th><th>Bank</th><th>Phone</th><th>Balance</th><th>Aksi</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-
-  <h2>Deposits List</h2>
-  <table id="depositsTable">
-    <thead>
-      <tr><th>UserID</th><th>Amount</th><th>Status</th><th>CreatedAt</th><th>Aksi</th></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+<h2>Deposits List</h2>
+<table id="depositsTable">
+  <thead>
+    <tr><th>UserID</th><th>Amount</th><th>Status</th><th>CreatedAt</th><th>Aksi</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
 <script>
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-async function adminLogin(){
-  const user=document.getElementById('adminUser').value.trim();
-  const pass=document.getElementById('adminPass').value.trim();
-  if(!user||!pass){ alert('Isi semua field'); return; }
-  // Di sini bisa pakai admin hardcode atau cek dari collection 'adminUsers'
-  if(user==='admin' && pass==='1234'){ 
-    showPage('adminPanel'); 
-    loadAdminData();
-  }else{ alert('Admin salah'); }
-}
-
-function logoutAdmin(){ showPage('adminLogin'); }
-
 async function loadAdminData(){
   const usersT=document.getElementById('usersTable').querySelector('tbody');
   usersT.innerHTML='';
@@ -105,6 +70,7 @@ async function loadAdminData(){
       <td>${data.password}</td>
       <td><input value="${data.namaRekening}" onchange="updateUserField('${u.id}','namaRekening',this.value)"></td>
       <td><input value="${data.rekening}" onchange="updateUserField('${u.id}','rekening',this.value)"></td>
+      <td>${data.bank}</td>
       <td>${data.phone}</td>
       <td><input value="${data.balance}" type="number" onchange="updateUserField('${u.id}','balance',parseInt(this.value))"></td>
       <td>
@@ -169,6 +135,10 @@ async function rejectDeposit(depId){
   alert('Deposit rejected');
   loadAdminData();
 }
+
+// Load data otomatis saat halaman dibuka
+loadAdminData();
 </script>
+
 </body>
 </html>
