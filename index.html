@@ -121,12 +121,20 @@ async function updateUserField(uid,field,value){
   await db.collection('users').doc(uid).update({[field]:value});
 }
 
+// ===== Approve deposit dan update saldo user realtime =====
 async function approveDeposit(depId){
+  // Update status deposit menjadi approved
   await db.collection('deposits').doc(depId).update({status:'approved'});
+  
+  // Ambil data deposit
   const depDoc=await db.collection('deposits').doc(depId).get();
-  const userRef=db.collection('users').doc(depDoc.data().user);
-  await userRef.update({balance:firebase.firestore.FieldValue.increment(depDoc.data().amount)});
-  alert('Deposit approved');
+  const depData = depDoc.data();
+
+  // Update saldo user otomatis
+  const userRef = db.collection('users').doc(depData.user);
+  await userRef.update({balance: firebase.firestore.FieldValue.increment(depData.amount)});
+
+  alert('✅ Deposit approved & saldo user diperbarui');
   loadAdminData();
 }
 
