@@ -76,16 +76,26 @@ h2 { margin-left: 20px; margin-top: 30px; border-left: 4px solid #FFD700; paddin
   <tbody></tbody>
 </table>
 
+<h2>💸 Withdraw List</h2>
+<table id="withdrawsTable">
+  <thead>
+    <tr>
+      <th>UserID</th><th>Amount</th><th>Status</th><th>Created At</th><th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
 <script>
 let usersData = [];
 let currentPage = 1;
 const usersPerPage = 10;
 
-// ======== Load Data Admin ========
+// ======== Load Semua Data Admin ========
 async function loadAdminData(){
   const searchVal = document.getElementById('searchInput').value.toLowerCase();
 
-  // --- Ambil data semua users ---
+  // --- Users List ---
   const usersSnap = await db.collection('users').get();
   usersData = [];
   usersSnap.forEach(u=>{
@@ -107,7 +117,6 @@ async function loadAdminData(){
   depsSnap.forEach(d=>{
     const data = d.data();
     const tr = document.createElement('tr');
-    // tampilkan pending di atas, approved/rejected di bawah
     tr.innerHTML = `
       <td>${data.user}</td>
       <td>${data.amount}</td>
@@ -122,6 +131,29 @@ async function loadAdminData(){
     `;
     if(data.status === 'pending') depsT.prepend(tr);
     else depsT.appendChild(tr);
+  });
+
+  // --- Withdraw List ---
+  const wdT = document.getElementById('withdrawsTable').querySelector('tbody');
+  wdT.innerHTML = '';
+  const wdSnap = await db.collection('withdraws').orderBy('createdAt','desc').get();
+  wdSnap.forEach(doc=>{
+    const data = doc.data();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${data.user}</td>
+      <td>${data.amount}</td>
+      <td>${data.status}</td>
+      <td>${data.createdAt}</td>
+      <td>
+        ${data.status === 'pending' ? `
+          <button class="btn-action btn-approve" onclick="approveWithdraw('${doc.id}')">Approve</button>
+          <button class="btn-action btn-reject" onclick="rejectWithdraw('${doc.id}')">Reject</button>
+        ` : '-'}
+      </td>
+    `;
+    if(data.status === 'pending') wdT.prepend(tr);
+    else wdT.appendChild(tr);
   });
 }
 
@@ -165,7 +197,7 @@ function prevPage(){
   }
 }
 
-// ======== Aksi ========
+// ======== Users Aksi ========
 async function deleteUser(uid){
   if(confirm(`Hapus user ${uid}?`)){
     await db.collection('users').doc(uid).delete();
@@ -187,6 +219,7 @@ async function updateUserField(uid, field, value){
   await db.collection('users').doc(uid).update({ [field]: value });
 }
 
+// ======== Deposit Aksi ========
 async function approveDeposit(depId){
   const depDoc = await db.collection('deposits').doc(depId).get();
   const depData = depDoc.data();
@@ -201,6 +234,24 @@ async function approveDeposit(depId){
 async function rejectDeposit(depId){
   await db.collection('deposits').doc(depId).update({ status: 'rejected' });
   alert('❌ Deposit ditolak');
+  loadAdminData();
+}
+
+// ======== Withdraw Aksi ========
+async function approveWithdraw(wdId){
+  const wdDoc = await db.collection('withdraws').doc(wdId).get();
+  const wdData = wdDoc.data();
+  await db.collection('withdraws').doc(wdId).update({ status: 'approved' });
+  await db.collection('users').doc(wdData.user).update({
+    balance: firebase.firestore.FieldValue.increment(-wdData.amount)
+  });
+  alert('✅ Withdraw disetujui & saldo dikurangi');
+  loadAdminData();
+}
+
+async function rejectWithdraw(wdId){
+  await db.collection('withdraws').doc(wdId).update({ status: 'rejected' });
+  alert('❌ Withdraw ditolak');
   loadAdminData();
 }
 
