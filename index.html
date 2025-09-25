@@ -2,24 +2,13 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ARIPTOTO - Admin Panel</title>
+
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<style>
-body {margin:0;font-family:Arial,sans-serif;background:#0a0f1c;color:white;}
-header {background:#111a33;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;}
-.logo{font-weight:bold;color:#FFD700;font-size:22px;}
-button{padding:6px 12px;border:none;border-radius:5px;cursor:pointer;margin:2px;}
-.btn-approve{background:#00cc66;color:white;}
-.btn-reject{background:#ff4444;color:white;}
-.btn-edit{background:#ffaa00;color:black;}
-.container{padding:20px;}
-table{width:100%;border-collapse:collapse;margin-bottom:30px;}
-th,td{border:1px solid #444;padding:8px;text-align:center;}
-th{background:#222;color:#FFD700;}
-input{padding:4px;border-radius:4px;border:none;width:100%;}
-</style>
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
@@ -31,146 +20,155 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+</script>
 
-// Load semua users
-async function loadUsers() {
-  const snapshot = await db.collection('users').get();
-  const tbody = document.getElementById('usersBody');
-  tbody.innerHTML = '';
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${doc.id}</td>
-      <td><input value="${data.password}" onchange="updateField('${doc.id}','password',this.value)"></td>
-      <td><input value="${data.namaRekening}" onchange="updateField('${doc.id}','namaRekening',this.value)"></td>
-      <td><input value="${data.rekening}" onchange="updateField('${doc.id}','rekening',this.value)"></td>
-      <td><input value="${data.bank}" onchange="updateField('${doc.id}','bank',this.value)"></td>
-      <td><input value="${data.phone}" onchange="updateField('${doc.id}','phone',this.value)"></td>
-      <td>${data.balance}</td>
-      <td>
-        <button class="btn-edit" onclick="addSaldo('${doc.id}')">Tambah Saldo</button>
-        <button class="btn-reject" onclick="resetID('${doc.id}')">Reset ID</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+<style>
+body { font-family: Arial,sans-serif; background:#0a0f1c; color:white; margin:0; }
+header { background:#111a33; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+.logo { font-size:22px; font-weight:bold; color:#FFD700; }
+.page { display:none; max-width:1200px; margin:20px auto; padding:20px; }
+.active { display:block; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th,td { border:1px solid #444; padding:8px; text-align:center; }
+th { background:#222; color:#FFD700; }
+td { background:#2a2a2a; }
+.btn-action { padding:4px 8px; margin:2px; border-radius:4px; cursor:pointer; }
+.btn-delete { background:#ff4444; color:white; }
+.btn-approve { background:#00cc66; color:white; }
+.btn-reject { background:#ff6666; color:white; }
+.btn-edit { background:#ffcc00; color:black; }
+input { width:80px; padding:2px; border-radius:3px; border:none; }
+</style>
+</head>
+<body>
+
+<!-- Admin Login -->
+<div id="adminLogin" class="page active">
+  <header><div class="logo">ARIPTOTO - Admin Login</div></header>
+  <div style="text-align:center;margin-top:50px;">
+    <input type="text" id="adminUser" placeholder="Admin User"><br><br>
+    <input type="password" id="adminPass" placeholder="Password"><br><br>
+    <button onclick="adminLogin()" style="padding:8px 16px;">Login</button>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPanel" class="page">
+  <header><div class="logo">ARIPTOTO - Admin Panel</div>
+  <div><button onclick="logoutAdmin()">Logout</button></div></header>
+
+  <h2>Users List</h2>
+  <table id="usersTable">
+    <thead>
+      <tr><th>UserID</th><th>Password</th><th>Rekening</th><th>Bank</th><th>Phone</th><th>Balance</th><th>Aksi</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Deposits List</h2>
+  <table id="depositsTable">
+    <thead>
+      <tr><th>UserID</th><th>Amount</th><th>Status</th><th>CreatedAt</th><th>Aksi</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-// Load semua deposit
-async function loadDeposits() {
-  const snapshot = await db.collection('deposits').orderBy('createdAt','desc').get();
-  const tbody = document.getElementById('depositBody');
-  tbody.innerHTML = '';
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${doc.id}</td>
+async function adminLogin(){
+  const user=document.getElementById('adminUser').value.trim();
+  const pass=document.getElementById('adminPass').value.trim();
+  if(!user||!pass){ alert('Isi semua field'); return; }
+  // Di sini bisa pakai admin hardcode atau cek dari collection 'adminUsers'
+  if(user==='admin' && pass==='1234'){ 
+    showPage('adminPanel'); 
+    loadAdminData();
+  }else{ alert('Admin salah'); }
+}
+
+function logoutAdmin(){ showPage('adminLogin'); }
+
+async function loadAdminData(){
+  const usersT=document.getElementById('usersTable').querySelector('tbody');
+  usersT.innerHTML='';
+  const users=await db.collection('users').get();
+  users.forEach(u=>{
+    const data=u.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${u.id}</td>
+      <td>${data.password}</td>
+      <td><input value="${data.namaRekening}" onchange="updateUserField('${u.id}','namaRekening',this.value)"></td>
+      <td><input value="${data.rekening}" onchange="updateUserField('${u.id}','rekening',this.value)"></td>
+      <td>${data.phone}</td>
+      <td><input value="${data.balance}" type="number" onchange="updateUserField('${u.id}','balance',parseInt(this.value))"></td>
+      <td>
+        <button class="btn-action btn-delete" onclick="deleteUser('${u.id}')">Hapus</button>
+        <button class="btn-action btn-approve" onclick="resetPassword('${u.id}')">Reset Pass</button>
+      </td>`;
+    usersT.appendChild(tr);
+  });
+
+  const depsT=document.getElementById('depositsTable').querySelector('tbody');
+  depsT.innerHTML='';
+  const deps=await db.collection('deposits').orderBy('createdAt','desc').get();
+  deps.forEach(d=>{
+    const data=d.data();
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
       <td>${data.user}</td>
       <td>${data.amount}</td>
       <td>${data.status}</td>
+      <td>${data.createdAt}</td>
       <td>
-        ${data.status==='pending'?`
-          <button class="btn-approve" onclick="updateDeposit('${doc.id','approved')">Approve</button>
-          <button class="btn-reject" onclick="updateDeposit('${doc.id','rejected')">Reject</button>
-        `:''}
-      </td>
-    `;
-    tbody.appendChild(tr);
+        ${data.status==='pending'?`<button class="btn-action btn-approve" onclick="approveDeposit('${d.id}')">Approve</button>
+        <button class="btn-action btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>`:''}
+      </td>`;
+    depsT.appendChild(tr);
   });
 }
 
-async function updateField(userId,field,value){
-  await db.collection('users').doc(userId).update({[field]:value});
-  alert('✅ Updated!');
-}
-
-async function addSaldo(userId){
-  const amount = parseInt(prompt('Masukkan jumlah saldo tambahan:'));
-  if(amount && amount>0){
-    const userRef = db.collection('users').doc(userId);
-    const doc = await userRef.get();
-    if(doc.exists){
-      const oldBalance = doc.data().balance || 0;
-      await userRef.update({balance: oldBalance + amount});
-      alert('✅ Saldo berhasil ditambahkan!');
-      loadUsers();
-    }
+// Functions
+async function deleteUser(uid){
+  if(confirm('Hapus user '+uid+'?')){
+    await db.collection('users').doc(uid).delete();
+    alert('User dihapus');
+    loadAdminData();
   }
 }
 
-async function resetID(userId){
-  if(confirm('Yakin ingin reset user ini? Semua data akan hilang!')){
-    await db.collection('users').doc(userId).delete();
-    alert('✅ User berhasil dihapus!');
-    loadUsers();
+async function resetPassword(uid){
+  const newPass=prompt('Password baru untuk '+uid);
+  if(newPass){
+    await db.collection('users').doc(uid).update({password:newPass});
+    alert('Password direset');
+    loadAdminData();
   }
 }
 
-async function updateDeposit(depositId,status){
-  const depRef = db.collection('deposits').doc(depositId);
-  const doc = await depRef.get();
-  if(doc.exists){
-    await depRef.update({status:status});
-    if(status==='approved'){
-      // Tambahkan saldo user
-      const userId = doc.data().user;
-      const amount = doc.data().amount;
-      const userRef = db.collection('users').doc(userId);
-      const userDoc = await userRef.get();
-      if(userDoc.exists){
-        const oldBalance = userDoc.data().balance || 0;
-        await userRef.update({balance: oldBalance + amount});
-      }
-    }
-    alert(`Deposit ${status}`);
-    loadDeposits();
-    loadUsers();
-  }
+async function updateUserField(uid,field,value){
+  await db.collection('users').doc(uid).update({[field]:value});
 }
 
-window.onload = function(){
-  loadUsers();
-  loadDeposits();
-};
+async function approveDeposit(depId){
+  await db.collection('deposits').doc(depId).update({status:'approved'});
+  const depDoc=await db.collection('deposits').doc(depId).get();
+  const userRef=db.collection('users').doc(depDoc.data().user);
+  await userRef.update({balance:firebase.firestore.FieldValue.increment(depDoc.data().amount)});
+  alert('Deposit approved');
+  loadAdminData();
+}
+
+async function rejectDeposit(depId){
+  await db.collection('deposits').doc(depId).update({status:'rejected'});
+  alert('Deposit rejected');
+  loadAdminData();
+}
 </script>
-</head>
-<body>
-<header>
-  <div class="logo">ARIPTOTO - Admin Panel</div>
-</header>
-<div class="container">
-<h2>Users</h2>
-<table>
-  <thead>
-    <tr>
-      <th>UserID</th>
-      <th>Password</th>
-      <th>Nama Rekening</th>
-      <th>No Rekening</th>
-      <th>Bank</th>
-      <th>Phone</th>
-      <th>Saldo</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody id="usersBody"></tbody>
-</table>
-
-<h2>Deposits</h2>
-<table>
-  <thead>
-    <tr>
-      <th>ID Deposit</th>
-      <th>User</th>
-      <th>Jumlah</th>
-      <th>Status</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody id="depositBody"></tbody>
-</table>
-</div>
 </body>
 </html>
