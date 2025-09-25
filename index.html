@@ -5,116 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ARIPTOTO - Webseat Control</title>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
 <style>
-  body {
-    font-family: Arial, sans-serif;
-    background: #0a0f1c;
-    color: white;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    background: #111a33;
-    padding: 15px 20px;
-    text-align: center;
-    font-size: 26px;
-    font-weight: bold;
-    color: #FFD700;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-  }
-  .search-container {
-    width: 95%;
-    margin: 20px auto;
-    text-align: right;
-  }
-  .search-container input {
-    padding: 6px 10px;
-    border-radius: 5px;
-    border: 1px solid #555;
-    width: 250px;
-    background: #1c1c1c;
-    color: white;
-  }
-  table {
-    width: 95%;
-    margin: 10px auto 30px auto;
-    border-collapse: collapse;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-  }
-  th, td {
-    padding: 10px 8px;
-    text-align: center;
-  }
-  th {
-    background: #1b2a4b;
-    color: #FFD700;
-  }
-  tr:nth-child(even) { background: #161c2d; }
-  tr:hover { background: #22336a; }
-  input.field-input {
-    width: 90%;
-    padding: 5px;
-    background: #1c1c1c;
-    color: white;
-    border: 1px solid #555;
-    border-radius: 5px;
-    text-align: center;
-  }
-  button {
-    padding: 5px 8px;
-    margin: 2px;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-  }
-  .btn-add { background: #00cc66; color: white; }
-  .btn-sub { background: #ff4444; color: white; }
-  .btn-pass { background: #ffaa00; color: black; }
-  .btn-approve { background: #00cc66; color: white; }
-  .btn-reject { background: #ff4444; color: white; }
-  button:hover { opacity: 0.85; transform: scale(1.05); }
-  @media (max-width: 768px) {
-    table, th, td { font-size: 12px; }
-    input.field-input { width: 80%; padding: 4px; }
-    button { padding: 4px 6px; font-size: 12px; }
-    .search-container input { width: 70%; }
-  }
+  body { font-family: Arial; background:#0a0f1c; color:white; margin:0; padding:0; }
+  header { background:#111a33; padding:15px; text-align:center; font-size:26px; color:#FFD700; }
+  table { width:95%; margin:20px auto; border-collapse: collapse; }
+  th, td { padding:10px; text-align:center; }
+  th { background:#1b2a4b; }
+  tr:nth-child(even){ background:#161c2d; } tr:hover{ background:#22336a; }
+  button { padding:5px 8px; margin:2px; border:none; border-radius:5px; cursor:pointer; }
+  .btn-approve { background:#00cc66; color:white; }
+  .btn-reject { background:#ff4444; color:white; }
+  button:hover{ opacity:0.85; transform:scale(1.05);}
 </style>
 </head>
 <body>
 
-<header>ARIPTOTO - Webseat Control</header>
+<header>ARIPTOTO - Admin Area</header>
 
-<div class="search-container">
-  <input type="text" id="searchBox" placeholder="Cari User ID, Nama Rekening, Bank..." onkeyup="filterTable()">
-</div>
-
-<!-- User Table -->
-<table>
-  <thead>
-    <tr>
-      <th>User ID</th>
-      <th>Nama Rekening</th>
-      <th>No Rekening</th>
-      <th>Bank</th>
-      <th>No HP</th>
-      <th>Saldo</th>
-      <th>Tanggal Masuk</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody id="userTable"></tbody>
-</table>
-
-<!-- Deposit Requests Table -->
 <h3 style="text-align:center; color:#FFD700;">Deposit Requests</h3>
 <table>
   <thead>
@@ -131,7 +41,6 @@
 </table>
 
 <script>
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
     authDomain: "ariptoto-web.firebaseapp.com",
@@ -143,91 +52,11 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  let usersData = [];
-  let deposits = [];
-
-  // Realtime User Data
-  db.collection('users').orderBy('namaRekening').onSnapshot(snapshot => {
-    usersData = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if(!data.createdAt){
-        data.createdAt = new Date().toISOString();
-        db.collection('users').doc(doc.id).update({createdAt: data.createdAt});
-      }
-      usersData.push({id: doc.id, ...data});
-    });
-    renderUserTable(usersData);
-  });
-
-  function renderUserTable(data){
-    const tbody = document.getElementById('userTable');
-    tbody.innerHTML = '';
-    data.forEach(d => {
-      tbody.innerHTML += `
-        <tr>
-          <td>${d.id}</td>
-          <td><input class="field-input" value="${d.namaRekening}" onchange="updateField('${d.id}','namaRekening',this.value)"></td>
-          <td><input class="field-input" value="${d.rekening}" onchange="updateField('${d.id}','rekening',this.value)"></td>
-          <td><input class="field-input" value="${d.bank}" onchange="updateField('${d.id}','bank',this.value)"></td>
-          <td><input class="field-input" value="${d.phone}" onchange="updateField('${d.id}','phone',this.value)"></td>
-          <td>${d.balance.toLocaleString()}</td>
-          <td>${new Date(d.createdAt).toLocaleDateString()}</td>
-          <td>
-            <button class="btn-add" onclick="addBalance('${d.id}', ${d.balance})">Tambah</button>
-            <button class="btn-sub" onclick="subtractBalance('${d.id}', ${d.balance})">Tarik</button>
-            <button class="btn-pass" onclick="resetPass('${d.id}')">Reset Pass</button>
-          </td>
-        </tr>
-      `;
-    });
-  }
-
-  function filterTable(){
-    const query = document.getElementById('searchBox').value.toLowerCase();
-    const filtered = usersData.filter(u =>
-      u.id.toLowerCase().includes(query) ||
-      u.namaRekening.toLowerCase().includes(query) ||
-      u.bank.toLowerCase().includes(query)
-    );
-    renderUserTable(filtered);
-  }
-
-  function updateField(userId, field, value){
-    db.collection('users').doc(userId).update({[field]: value});
-  }
-
-  function addBalance(userId, currentBalance){
-    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditambahkan:', '0'));
-    if(!isNaN(amount) && amount>0){
-      db.collection('users').doc(userId).update({ balance: currentBalance + amount });
-    }
-  }
-
-  function subtractBalance(userId, currentBalance){
-    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditarik:', '0'));
-    if(!isNaN(amount) && amount>0){
-      const newBalance = Math.max(0, currentBalance - amount);
-      db.collection('users').doc(userId).update({ balance: newBalance });
-    }
-  }
-
-  function resetPass(userId){
-    const newPass = prompt(`Masukkan password baru untuk ${userId}`);
-    if(newPass) db.collection('users').doc(userId).update({password:newPass});
-  }
-
-  // ===== Deposit Request Logic =====
-  db.collection('depositRequest').orderBy('tanggal','desc').onSnapshot(snapshot => {
-    deposits = [];
-    snapshot.forEach(doc => deposits.push({id:doc.id, ...doc.data()}));
-    renderDepositTable(deposits);
-  });
-
-  function renderDepositTable(data){
+  db.collection('depositRequest').orderBy('tanggal','desc').onSnapshot(snapshot=>{
     const tbody = document.getElementById('depositTable');
-    tbody.innerHTML = '';
-    data.forEach(d => {
+    tbody.innerHTML='';
+    snapshot.forEach(doc=>{
+      const d = doc.data();
       tbody.innerHTML += `
         <tr>
           <td>${d.userId}</td>
@@ -237,37 +66,31 @@
           <td>${d.status}</td>
           <td>
             ${d.status==='Pending' ? 
-              `<button class="btn-approve" onclick="approveDeposit('${d.id}','${d.userId}',${d.nominal})">Approve</button>
-               <button class="btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>` 
-              : ''
-            }
+              `<button class="btn-approve" onclick="approveDeposit('${doc.id}','${d.userId}',${d.nominal})">Approve</button>
+               <button class="btn-reject" onclick="rejectDeposit('${doc.id}')">Reject</button>` : ''}
           </td>
         </tr>
       `;
     });
-  }
+  });
 
   async function approveDeposit(docId, userId, nominal){
     if(confirm(`Approve deposit Rp ${nominal.toLocaleString()} untuk ${userId}?`)){
-      try {
-        const userRef = db.collection('users').doc(userId);
-        const userDoc = await userRef.get();
-        if(userDoc.exists){
-          const currentBalance = userDoc.data().balance || 0;
-          await userRef.update({ balance: currentBalance + nominal });
-          await db.collection('depositRequest').doc(docId).update({ status:'Approved' });
-          alert('Deposit approved & saldo bertambah!');
-        } else alert('User tidak ditemukan!');
-      } catch(err){ console.error(err); alert('Gagal approve deposit.'); }
+      const userRef = db.collection('users').doc(userId);
+      const userDoc = await userRef.get();
+      if(userDoc.exists){
+        const currentBalance = userDoc.data().balance || 0;
+        await userRef.update({ balance: currentBalance + nominal });
+        await db.collection('depositRequest').doc(docId).update({ status:'Approved' });
+        alert('Deposit approved & saldo bertambah!');
+      } else alert('User tidak ditemukan!');
     }
   }
 
   async function rejectDeposit(docId){
     if(confirm('Reject deposit ini?')){
-      try {
-        await db.collection('depositRequest').doc(docId).update({ status:'Rejected' });
-        alert('Deposit rejected!');
-      } catch(err){ console.error(err); alert('Gagal reject deposit.'); }
+      await db.collection('depositRequest').doc(docId).update({ status:'Rejected' });
+      alert('Deposit rejected!');
     }
   }
 </script>
