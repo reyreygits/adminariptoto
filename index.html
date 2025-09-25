@@ -78,6 +78,8 @@
   .btn-add { background: #00cc66; color: white; }
   .btn-sub { background: #ff4444; color: white; }
   .btn-pass { background: #ffaa00; color: black; }
+  .btn-approve { background: #00cc66; color: white; }
+  .btn-reject { background: #ff4444; color: white; }
   button:hover { opacity: 0.85; transform: scale(1.05); }
   @media (max-width: 768px) {
     table, th, td { font-size: 12px; }
@@ -100,15 +102,13 @@
     <tr>
       <th>User ID</th>
       <th>Nama Rekening</th>
-      <th>No Rekening</th>
-      <th>Bank</th>
-      <th>No HP</th>
-      <th>Saldo</th>
-      <th>Tanggal Masuk</th>
+      <th>Nominal</th>
+      <th>Tanggal</th>
+      <th>Status</th>
       <th>Aksi</th>
     </tr>
   </thead>
-  <tbody id="userTable"></tbody>
+  <tbody id="depositTable"></tbody>
 </table>
 
 <script>
@@ -124,39 +124,33 @@
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
-  let usersData = [];
+  let deposits = [];
 
-  // Realtime User Data
-  db.collection('users').orderBy('namaRekening').onSnapshot(snapshot => {
-    usersData = [];
+  // Realtime deposit requests
+  db.collection('depositRequest').orderBy('tanggal', 'desc').onSnapshot(snapshot => {
+    deposits = [];
     snapshot.forEach(doc => {
-      const data = doc.data();
-      if(!data.createdAt){
-        data.createdAt = new Date().toISOString();
-        db.collection('users').doc(doc.id).update({createdAt: data.createdAt});
-      }
-      usersData.push({id: doc.id, ...data});
+      deposits.push({id: doc.id, ...doc.data()});
     });
-    renderTable(usersData);
+    renderDepositTable(deposits);
   });
 
-  function renderTable(data){
-    const tbody = document.getElementById('userTable');
+  function renderDepositTable(data){
+    const tbody = document.getElementById('depositTable');
     tbody.innerHTML = '';
     data.forEach(d => {
       tbody.innerHTML += `
         <tr>
-          <td>${d.id}</td>
-          <td><input class="field-input" value="${d.namaRekening}" onchange="updateField('${d.id}','namaRekening',this.value)"></td>
-          <td><input class="field-input" value="${d.rekening}" onchange="updateField('${d.id}','rekening',this.value)"></td>
-          <td><input class="field-input" value="${d.bank}" onchange="updateField('${d.id}','bank',this.value)"></td>
-          <td><input class="field-input" value="${d.phone}" onchange="updateField('${d.id}','phone',this.value)"></td>
-          <td>${d.balance.toLocaleString()}</td>
-          <td>${new Date(d.createdAt).toLocaleDateString()}</td>
+          <td>${d.userId}</td>
+          <td>${d.namaRekening}</td>
+          <td>${d.nominal.toLocaleString()}</td>
+          <td>${new Date(d.tanggal).toLocaleString()}</td>
+          <td>${d.status}</td>
           <td>
-            <button class="btn-add" onclick="addBalance('${d.id}', ${d.balance})">Tambah</button>
-            <button class="btn-sub" onclick="subtractBalance('${d.id}', ${d.balance})">Tarik</button>
-            <button class="btn-pass" onclick="resetPass('${d.id}')">Reset Pass</button>
+            ${d.status === 'Pending' ? 
+              `<button class="btn-approve" onclick="approveDeposit('${d.id}', '${d.userId}', ${d.nominal})">Approve</button>
+               <button class="btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>` 
+            : ''}
           </td>
         </tr>
       `;
@@ -165,36 +159,41 @@
 
   function filterTable(){
     const query = document.getElementById('searchBox').value.toLowerCase();
-    const filtered = usersData.filter(u =>
-      u.id.toLowerCase().includes(query) ||
-      u.namaRekening.toLowerCase().includes(query) ||
-      u.bank.toLowerCase().includes(query)
+    const filtered = deposits.filter(d =>
+      d.userId.toLowerCase().includes(query) ||
+      d.namaRekening.toLowerCase().includes(query)
     );
-    renderTable(filtered);
+    renderDepositTable(filtered);
   }
 
-  function updateField(userId, field, value){
-    db.collection('users').doc(userId).update({[field]: value});
-  }
-
-  function addBalance(userId, currentBalance){
-    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditambahkan:', '0'));
-    if(!isNaN(amount) && amount>0){
-      db.collection('users').doc(userId).update({ balance: currentBalance + amount });
+  async function approveDeposit(docId, userId, nominal){
+    if(confirm(`Approve deposit ${nominal} untuk ${userId}?`)){
+      try {
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+        if(userDoc.exists){
+          const currentBalance = userDoc.data().balance || 0;
+          await userRef.update({ balance: currentBalance + nominal });
+          await db.collection('depositRequest').doc(docId).update({ status: 'Approved' });
+          alert('Deposit approved & saldo bertambah!');
+        }
+      } catch(err){
+        console.error(err);
+        alert('Gagal approve deposit.');
+      }
     }
   }
 
-  function subtractBalance(userId, currentBalance){
-    const amount = parseInt(prompt('Masukkan jumlah saldo yang ditarik:', '0'));
-    if(!isNaN(amount) && amount>0){
-      const newBalance = Math.max(0, currentBalance - amount);
-      db.collection('users').doc(userId).update({ balance: newBalance });
+  async function rejectDeposit(docId){
+    if(confirm(`Reject deposit ini?`)){
+      try {
+        await db.collection('depositRequest').doc(docId).update({ status: 'Rejected' });
+        alert('Deposit rejected!');
+      } catch(err){
+        console.error(err);
+        alert('Gagal reject deposit.');
+      }
     }
-  }
-
-  function resetPass(userId){
-    const newPass = prompt(`Masukkan password baru untuk ${userId}`);
-    if(newPass) db.collection('users').doc(userId).update({password:newPass});
   }
 </script>
 
