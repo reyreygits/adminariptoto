@@ -2,113 +2,210 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ARIPTOTO - Admin Panel</title>
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<style>
-body{background:#0a0f1c;color:white;font-family:Arial,sans-serif;margin:0;padding:20px;}
-button{padding:5px 10px;margin:2px;border:none;border-radius:5px;cursor:pointer;}
-.approve{background:#00cc66;color:white;}
-.reject{background:#ff4444;color:white;}
-</style>
-</head>
-<body>
-<h2>Admin Panel - Pending Deposit & Withdraw</h2>
-<div id="pendingList"></div>
 
 <script>
-// Firebase config sama dengan user
 const firebaseConfig = {
-  apiKey:"AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
-  authDomain:"ariptoto-web.firebaseapp.com",
-  projectId:"ariptoto-web",
-  storageBucket:"ariptoto-web.appspot.com",
-  messagingSenderId:"129200594109",
-  appId:"1:129200594109:web:50f7f4ce89a384211b2bd4"
+  apiKey: "AIzaSyBC8UXFcrJaxMsJsTQgnqaaNvgsAVz0vOE",
+  authDomain: "ariptoto-web.firebaseapp.com",
+  projectId: "ariptoto-web",
+  storageBucket: "ariptoto-web.appspot.com",
+  messagingSenderId: "129200594109",
+  appId: "1:129200594109:web:50f7f4ce89a384211b2bd4"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+</script>
 
-// Load semua pending
-async function loadPending(){
-  const div = document.getElementById('pendingList');
-  div.innerHTML='Loading...';
-  const snapshot = await db.collection('users').get();
-  div.innerHTML='';
-  snapshot.forEach(doc=>{
-    const user = doc.id;
-    const data = doc.data();
+<style>
+body { font-family: Arial, sans-serif; background: #0a0f1c; color: white; margin: 0; padding: 0; }
+header { background: #111a33; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.logo { font-size: 24px; font-weight: bold; color: #FFD700; }
+.search-bar { margin: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+.search-bar input { padding: 8px; border-radius: 6px; border: none; width: 200px; font-size: 14px; }
+.search-bar button { padding: 8px 15px; background: #FFD700; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+table { width: 95%; margin: 20px auto; border-collapse: collapse; background: #1a1f33; border-radius: 8px; overflow: hidden; }
+th, td { padding: 10px; text-align: center; border: 1px solid #333; }
+th { background: #222; color: #FFD700; }
+td { background: #2a2a2a; }
+input.editable { width: 100px; padding: 4px; border-radius: 4px; border: none; text-align: center; background: #444; color: white; }
+.btn-action { padding: 5px 10px; margin: 2px; border-radius: 4px; cursor: pointer; border: none; font-weight: bold; }
+.btn-delete { background: #ff4444; color: white; }
+.btn-approve { background: #00cc66; color: white; }
+.btn-reject { background: #ff6666; color: white; }
+h2 { margin-left: 20px; margin-top: 30px; border-left: 4px solid #FFD700; padding-left: 10px; }
+.pagination { text-align: center; margin-bottom: 30px; }
+.pagination button { padding: 8px 15px; margin: 5px; border-radius: 6px; background: #FFD700; border: none; color: #000; font-weight: bold; cursor: pointer; }
+</style>
+</head>
 
-    // Deposit pending
-    (data.historyDeposit||[]).forEach((dep,i)=>{
-      if(dep.status==='pending'){
-        const el = document.createElement('div');
-        el.innerHTML = `<strong>${user}</strong> Deposit Rp ${dep.amount} 
-          <button onclick="approveDeposit('${user}',${i},${dep.amount})" class="approve">Approve</button>
-          <button onclick="rejectDeposit('${user}',${i})" class="reject">Reject</button>`;
-        div.appendChild(el);
-      }
-    });
+<body>
+<header><div class="logo">ARIPTOTO - Admin Panel</div></header>
 
-    // Withdraw pending
-    (data.historyWithdraw||[]).forEach((w,i)=>{
-      if(w.status==='pending'){
-        const el = document.createElement('div');
-        el.innerHTML = `<strong>${user}</strong> Withdraw Rp ${w.amount} 
-          <button onclick="approveWithdraw('${user}',${i},${w.amount})" class="approve">Approve</button>
-          <button onclick="rejectWithdraw('${user}',${i})" class="reject">Reject</button>`;
-        div.appendChild(el);
-      }
-    });
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Cari UserID / Nama / No Rekening">
+  <button onclick="loadAdminData()">🔍 Cari</button>
+</div>
+
+<h2>📋 Users List</h2>
+<table id="usersTable">
+  <thead>
+    <tr>
+      <th>UserID</th><th>Password</th><th>Nama Rekening</th><th>No Rekening</th><th>Bank</th><th>Phone</th><th>Balance</th><th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<div class="pagination">
+  <button onclick="prevPage()">⏮️ Sebelumnya</button>
+  <button onclick="nextPage()">⏭️ Berikutnya</button>
+</div>
+
+<h2>💳 Deposit List</h2>
+<table id="depositsTable">
+  <thead>
+    <tr>
+      <th>UserID</th><th>Amount</th><th>Status</th><th>Created At</th><th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+let usersData = [];
+let currentPage = 1;
+const usersPerPage = 10;
+
+// ======== Load Data Admin ========
+async function loadAdminData(){
+  const searchVal = document.getElementById('searchInput').value.toLowerCase();
+
+  // --- Ambil data semua users ---
+  const usersSnap = await db.collection('users').get();
+  usersData = [];
+  usersSnap.forEach(u=>{
+    const data = u.data();
+    if (!searchVal || 
+        u.id.toLowerCase().includes(searchVal) ||
+        (data.namaRekening && data.namaRekening.toLowerCase().includes(searchVal)) ||
+        (data.rekening && data.rekening.toLowerCase().includes(searchVal))
+    ){
+      usersData.push({id: u.id, ...data});
+    }
+  });
+  renderUsers();
+
+  // --- Deposit List ---
+  const depsT = document.getElementById('depositsTable').querySelector('tbody');
+  depsT.innerHTML = '';
+  const depsSnap = await db.collection('deposits').orderBy('createdAt','desc').get();
+  depsSnap.forEach(d=>{
+    const data = d.data();
+    const tr = document.createElement('tr');
+    // tampilkan pending di atas, approved/rejected di bawah
+    tr.innerHTML = `
+      <td>${data.user}</td>
+      <td>${data.amount}</td>
+      <td>${data.status}</td>
+      <td>${data.createdAt}</td>
+      <td>
+        ${data.status === 'pending' ? `
+          <button class="btn-action btn-approve" onclick="approveDeposit('${d.id}')">Approve</button>
+          <button class="btn-action btn-reject" onclick="rejectDeposit('${d.id}')">Reject</button>
+        ` : '-'}
+      </td>
+    `;
+    if(data.status === 'pending') depsT.prepend(tr);
+    else depsT.appendChild(tr);
   });
 }
 
-// Approve deposit
-async function approveDeposit(user,i,amt){
-  const docRef = db.collection('users').doc(user);
-  const doc = await docRef.get();
-  const data = doc.data();
-  data.balance = (data.balance||0)+amt;
-  data.historyDeposit[i].status='approved';
-  await docRef.update({balance:data.balance,historyDeposit:data.historyDeposit});
-  loadPending();
+// ======== Render Users dengan Pagination ========
+function renderUsers(){
+  const usersT = document.getElementById('usersTable').querySelector('tbody');
+  usersT.innerHTML = '';
+  const start = (currentPage-1)*usersPerPage;
+  const end = start + usersPerPage;
+  const pageUsers = usersData.slice(start,end);
+  pageUsers.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.id}</td>
+      <td>${u.password}</td>
+      <td><input class="editable" value="${u.namaRekening}" onchange="updateUserField('${u.id}','namaRekening',this.value)"></td>
+      <td><input class="editable" value="${u.rekening}" onchange="updateUserField('${u.id}','rekening',this.value)"></td>
+      <td>${u.bank || '-'}</td>
+      <td>${u.phone || '-'}</td>
+      <td><input class="editable" type="number" value="${u.balance}" onchange="updateUserField('${u.id}','balance',parseInt(this.value))"></td>
+      <td>
+        <button class="btn-action btn-delete" onclick="deleteUser('${u.id}')">Hapus</button>
+        <button class="btn-action btn-approve" onclick="resetPassword('${u.id}')">Reset Pass</button>
+      </td>
+    `;
+    usersT.appendChild(tr);
+  });
 }
 
-// Reject deposit
-async function rejectDeposit(user,i){
-  const docRef = db.collection('users').doc(user);
-  const doc = await docRef.get();
-  const data = doc.data();
-  data.historyDeposit[i].status='rejected';
-  await docRef.update({historyDeposit:data.historyDeposit});
-  loadPending();
+// ======== Pagination ========
+function nextPage(){
+  if(currentPage*usersPerPage < usersData.length){
+    currentPage++;
+    renderUsers();
+  }
+}
+function prevPage(){
+  if(currentPage > 1){
+    currentPage--;
+    renderUsers();
+  }
 }
 
-// Approve withdraw
-async function approveWithdraw(user,i,amt){
-  const docRef = db.collection('users').doc(user);
-  const doc = await docRef.get();
-  const data = doc.data();
-  if((data.balance||0)<amt){alert('Saldo tidak cukup'); return;}
-  data.balance -= amt;
-  data.historyWithdraw[i].status='approved';
-  await docRef.update({balance:data.balance,historyWithdraw:data.historyWithdraw});
-  loadPending();
+// ======== Aksi ========
+async function deleteUser(uid){
+  if(confirm(`Hapus user ${uid}?`)){
+    await db.collection('users').doc(uid).delete();
+    alert('✅ User dihapus');
+    loadAdminData();
+  }
 }
 
-// Reject withdraw
-async function rejectWithdraw(user,i){
-  const docRef = db.collection('users').doc(user);
-  const doc = await docRef.get();
-  const data = doc.data();
-  data.historyWithdraw[i].status='rejected';
-  await docRef.update({historyWithdraw:data.historyWithdraw});
-  loadPending();
+async function resetPassword(uid){
+  const newPass = prompt(`Password baru untuk ${uid}:`);
+  if(newPass){
+    await db.collection('users').doc(uid).update({ password: newPass });
+    alert('🔐 Password direset');
+    loadAdminData();
+  }
 }
 
-// Load on start
-loadPending();
+async function updateUserField(uid, field, value){
+  await db.collection('users').doc(uid).update({ [field]: value });
+}
+
+async function approveDeposit(depId){
+  const depDoc = await db.collection('deposits').doc(depId).get();
+  const depData = depDoc.data();
+  await db.collection('deposits').doc(depId).update({ status: 'approved' });
+  await db.collection('users').doc(depData.user).update({
+    balance: firebase.firestore.FieldValue.increment(depData.amount)
+  });
+  alert('✅ Deposit disetujui & saldo diperbarui');
+  loadAdminData();
+}
+
+async function rejectDeposit(depId){
+  await db.collection('deposits').doc(depId).update({ status: 'rejected' });
+  alert('❌ Deposit ditolak');
+  loadAdminData();
+}
+
+// ======== Load saat halaman dibuka ========
+loadAdminData();
 </script>
 </body>
 </html>
